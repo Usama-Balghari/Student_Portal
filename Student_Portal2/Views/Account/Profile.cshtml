@@ -1,0 +1,167 @@
+﻿@model RegisterViewModel
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+
+<div class="pf-page">
+    <div class="pf-card">
+
+        @* ── HERO ── *@
+        <div class="pf-hero">
+            <div class="pf-hero-glow"></div>
+            <div class="pf-hero-inner">
+
+                @* Avatar *@
+                <div class="pf-avatar-wrap">
+                    <img id="pf-avatar-img"
+                         src="~/@(Model.ProfileImage ?? "images/default-user.jpg")"
+                         alt="Profile photo" />
+
+                    @* Hidden file input — same asp-for, same name *@
+                    <input asp-for="ImageFile" type="file" class="pf-avatar-file"
+                           id="pf-avatar-input"
+                           onchange="previewAvatar(this)" />
+
+                    @* Camera badge triggers the input *@
+                    <label class="pf-avatar-badge" for="pf-avatar-input" title="Change photo">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="white" viewBox="0 0 16 16">
+                            <path d="M15 12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h1.172a3 3 0 0 0 2.12-.879l.83-.828A1 1 0 0 1 6.827 3h2.344a1 1 0 0 1 .707.293l.828.828A3 3 0 0 0 12.828 5H14a1 1 0 0 1 1 1v6zM2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4H2z" />
+                            <path d="M8 11a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5zm0 1a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z" />
+                        </svg>
+                    </label>
+                </div>
+
+                @* Text *@
+                <div>
+                    <h1 class="pf-hero-title">My Profile</h1>
+                    @if (!User.IsInRole("Admin"))
+                    {
+                    <div class="pf-hero-dept">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="rgba(255,255,255,0.7)" viewBox="0 0 16 16">
+                            <path d="M8.277.084a.5.5 0 0 0-.554 0l-7.5 5A.5.5 0 0 0 .5 6h1.875v7H1.5a.5.5 0 0 0 0 1h13a.5.5 0 0 0 0-1h-.875V6H15.5a.5.5 0 0 0 .277-.916l-7.5-5z" />
+                        </svg>
+                        @ViewBag.DepartmentName
+                    </div> 
+                    }
+                    <label class="pf-file-label" for="pf-avatar-input">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z" />
+                            <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z" />
+                        </svg>
+                        <span id="pf-file-name">Change picture</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        @* ── FORM BODY ── *@
+        <div class="pf-body">
+
+            <form asp-action="Profile" method="post" enctype="multipart/form-data">
+
+                @* Success alert *@
+                @if (TempData["Success"] != null)
+                {
+                    <div id="success-alert" class="pf-alert">
+                        <span id="success"></span>
+                    </div>
+                    <script>
+                        let alertBox = document.getElementById("success-alert");
+                        let msg = document.getElementById("success");
+                        msg.innerText = "@TempData["Success"]";
+                        alertBox.style.display = "block";
+                        setTimeout(() => { alertBox.style.display = "none"; }, 3000);
+                    </script>
+                }
+
+                @* ── Personal Info ── *@
+                <p class="pf-section-label">Personal Information</p>
+
+                <div class="pf-grid">
+
+                    <div class="pf-group">
+                        <label class="pf-label">First Name</label>
+                        <input asp-for="FirstName" class="pf-input" placeholder="First name" />
+                        <span asp-validation-for="FirstName" class="pf-error"></span>
+                    </div>
+
+                    <div class="pf-group">
+                        <label class="pf-label">Last Name</label>
+                        <input asp-for="LastName" class="pf-input" placeholder="Last name" />
+                        <span asp-validation-for="LastName" class="pf-error"></span>
+                    </div>
+
+                    <div class="pf-group">
+                        <label class="pf-label">User Name</label>
+                        <input asp-for="UserName" class="pf-input" placeholder="Username" />
+                        <span asp-validation-for="UserName" class="pf-error"></span>
+                    </div>
+
+                    <div class="pf-group">
+                        <label class="pf-label">Email</label>
+                        <input asp-for="Email" class="pf-input" placeholder="Email address" />
+                        <span asp-validation-for="Email" class="pf-error"></span>
+                    </div>
+
+                </div>
+
+                @* ── Change Password ── *@
+                <p class="pf-section-label">Change Password</p>
+
+                <div class="pf-grid">
+
+                    <div class="pf-group">
+                        <label class="pf-label">Current Password</label>
+                        <input asp-for="Password" type="password" class="pf-input" placeholder="••••••••" />
+                        <span asp-validation-for="Password" class="pf-error"></span>
+                    </div>
+
+                    <div class="pf-group">
+                        <label class="pf-label">New Password</label>
+                        <input asp-for="NewPassword" type="password" class="pf-input" placeholder="••••••••" />
+                    </div>
+
+                    <div class="pf-group">
+                        <label class="pf-label">Confirm Password</label>
+                        <input asp-for="ConfirmPassword" type="password" class="pf-input" placeholder="••••••••" />
+                        <span asp-validation-for="ConfirmPassword" class="pf-error"></span>
+                    </div>
+
+                </div>
+
+                @* Validation summary *@
+                <div asp-validation-summary="ModelOnly" class="pf-validation-summary"></div>
+
+                @* Submit *@
+                <div class="text-end">
+                    <button type="submit" class="pf-btn-submit">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16">
+                            <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" />
+                        </svg>
+                        Update Profile
+                    </button>
+                </div>
+
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // Live avatar preview
+    function previewAvatar(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                document.getElementById('pf-avatar-img').src = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
+
+            // update file label text
+            const nameEl = document.getElementById('pf-file-name');
+            if (nameEl) nameEl.textContent = input.files[0].name;
+        }
+    }
+</script>

@@ -1,0 +1,100 @@
+﻿@model RegisterViewModel
+
+
+
+<form asp-action="ViewUserProfile" method="post" enctype="multipart/form-data">
+    <input type="hidden" asp-for="UserId" />
+
+    @* {{-- Avatar --}} *@
+    <div class="text-center mb-4">
+        <div class="vup-avatar-wrap">
+            <img id="vup-avatar-img"
+                 src="~/@(Model.ProfileImage ?? "images/default-user.jpg")"
+                 alt="Profile photo" />
+
+            <input asp-for="ImageFile" type="file" class="vup-avatar-file"
+                   id="vup-avatar-input"
+                   onchange="vupPreview(this)" />
+
+            <label class="vup-avatar-badge" for="vup-avatar-input" title="Change photo">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="white" viewBox="0 0 16 16">
+                    <path d="M15 12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h1.172a3 3 0 0 0 2.12-.879l.83-.828A1 1 0 0 1 6.827 3h2.344a1 1 0 0 1 .707.293l.828.828A3 3 0 0 0 12.828 5H14a1 1 0 0 1 1 1v6zM2 4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2h-1.172a2 2 0 0 1-1.414-.586l-.828-.828A2 2 0 0 0 9.172 2H6.828a2 2 0 0 0-1.414.586l-.828.828A2 2 0 0 1 3.172 4H2z" />
+                    <path d="M8 11a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5zm0 1a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z" />
+                </svg>
+            </label>
+        </div>
+
+        <label class="vup-file-label" for="vup-avatar-input">
+            <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z" />
+                <path d="M7.646 1.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1-.708.708L8.5 2.707V11.5a.5.5 0 0 1-1 0V2.707L5.354 4.854a.5.5 0 1 1-.708-.708l3-3z" />
+            </svg>
+            <span id="vup-file-name">Change picture</span>
+        </label>
+
+        <p class="vup-email-tag">@Model.Email</p>
+    </div>
+
+    @* {{-- Personal Info --}} *@
+    <p class="vup-section-label">Personal Information</p>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-6">
+            <label class="vup-label">Username</label>
+            <input asp-for="UserName" class="vup-input" placeholder="Username" />
+            <span asp-validation-for="UserName" class="text-danger small mt-1 d-block"></span>
+        </div>
+        <div class="col-md-6">
+            <label class="vup-label">Email</label>
+            <input asp-for="Email" class="vup-input" placeholder="Email address" />
+            <span asp-validation-for="Email" class="text-danger small mt-1 d-block"></span>
+        </div>
+        <div class="col-md-6">
+            <label class="vup-label">First Name</label>
+            <input asp-for="FirstName" class="vup-input" placeholder="First name" />
+            <span asp-validation-for="FirstName" class="text-danger small mt-1 d-block"></span>
+        </div>
+        <div class="col-md-6">
+            <label class="vup-label">Last Name</label>
+            <input asp-for="LastName" class="vup-input" placeholder="Last name" />
+            <span asp-validation-for="LastName" class="text-danger small mt-1 d-block"></span>
+        </div>
+    </div>
+
+    @* {{-- Reset Password --}} *@
+    <p class="vup-section-label">Security</p>
+
+    <div class="vup-pwd-card">
+        <label class="vup-label">Reset Password</label>
+        <input asp-for="NewPassword" type="password"
+               class="vup-input"
+               placeholder="••••••••" />
+        <span asp-validation-for="NewPassword" class="text-danger small mt-1 d-block"></span>
+        <small class="vup-pwd-hint">Leave blank to keep the current password.</small>
+    </div>
+
+    @* {{-- Submit --}} *@
+    <div class="d-flex justify-content-end">
+        <button type="submit" class="btn vup-btn-save">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z" />
+            </svg>
+            Save Changes
+        </button>
+    </div>
+
+</form>
+
+<script>
+    function vupPreview(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = e => {
+                document.getElementById('vup-avatar-img').src = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
+            const nameEl = document.getElementById('vup-file-name');
+            if (nameEl) nameEl.textContent = input.files[0].name;
+        }
+    }
+</script>

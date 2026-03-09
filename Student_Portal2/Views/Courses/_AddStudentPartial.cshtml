@@ -1,0 +1,22 @@
+﻿@model IEnumerable<Student_Portal2.Models.Student>
+
+<form asp-action="AddStudentsToCourse" method="post">
+
+    <input type="hidden" name="courseId" value="@ViewBag.CourseId" />
+
+    <select name="studentIds" class="form-select" multiple size="6">
+
+        @foreach (var s in Model)
+        {
+            <option value="@s.Id">
+                @s.User.FirstName @s.User.LastName
+            </option>
+        }
+
+    </select>
+
+    <button class="btn btn-primary mt-3">
+        Enroll Students
+    </button>
+
+</form>

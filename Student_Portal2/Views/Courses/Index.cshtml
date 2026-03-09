@@ -1,0 +1,270 @@
+﻿@model IEnumerable<Student_Portal2.Models.Course>
+@{
+    ViewData["Title"] = "Courses";
+}
+
+
+<div class="courses-page">
+
+    @* {{-- Success Alert --}} *@
+    <div id="success-alert"
+         class="alert alert-dismissible fade show mb-3"
+         style="display:none;">
+        <span id="success"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    @if (TempData["success"] != null)
+    {
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                let alertBox = document.getElementById("success-alert");
+                let msg = document.getElementById("success");
+                msg.innerText = "@TempData["success"]";
+                alertBox.style.display = "block";
+                setTimeout(() => { alertBox.style.display = "none"; }, 3000);
+            });
+        </script>
+    }
+
+    @* {{-- Page Header --}} *@
+    <div class="courses-page-header">
+        <p class="courses-page-eyebrow">Management</p>
+        <h1 class="courses-page-title">Courses</h1>
+    </div>
+
+    @* ═══════════════════════ ADMIN VIEW ═══════════════════════ *@
+    @if (User.IsInRole("Admin"))
+    {
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <button class="btn btn-create-new"
+                    data-bs-toggle="modal" data-bs-target="#createCourseModal">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
+                </svg>
+                Create New
+            </button>
+        </div>
+
+        @* { { --Table--} } *@
+        <div class="card courses-table-card">
+            <div class="card-body p-0">
+                <table id="tblCourses" class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Course Name</th>
+                            <th style="width:160px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr id="row-@item.Id">
+                                <td>
+                                    <div class="course-name-cell">
+                                        <div class="course-name-avatar">
+                                            @item.CourseName.Substring(0, 1).ToUpper()
+                                        </div>
+                                        <span class="course-name-text">@item.CourseName</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-2">
+                                        <button class="btn btn-tbl-edit edit-course-btn" data-id="@item.Id">
+                                            Edit
+                                        </button>
+                                        <button class="btn btn-tbl-delete delete-course-btn" data-id="@item.Id">
+                                            Delete
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        @* { { --Create Modal--} } *@
+        <div class="modal fade sp-modal" id="createCourseModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="sp-modal-header-indigo">
+                        <div class="d-flex align-items-center" style="position:relative;z-index:1;">
+                            <div class="sp-modal-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="white" viewBox="0 0 16 16">
+                                    <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
+                                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h5 class="sp-modal-title">Create Course</h5>
+                                <p class="sp-modal-sub">Add a new course to the portal</p>
+                            </div>
+                        </div>
+                        <button type="button" class="sp-modal-close" data-bs-dismiss="modal">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" viewBox="0 0 16 16">
+                                <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="sp-modal-body">
+                        @await Html.PartialAsync("_CreateCoursePartial", new Student_Portal2.Models.Course())
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* { { --Edit Modal--} } *@
+        <div class="modal fade sp-modal" id="EditCourseModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="sp-modal-header-indigo">
+                        <div class="d-flex align-items-center" style="position:relative;z-index:1;">
+                            <div class="sp-modal-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="white" viewBox="0 0 16 16">
+                                    <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h5 class="sp-modal-title">Edit Course</h5>
+                                <p class="sp-modal-sub">Update course information</p>
+                            </div>
+                        </div>
+                        <button type="button" class="sp-modal-close" data-bs-dismiss="modal">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" viewBox="0 0 16 16">
+                                <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="sp-modal-body" id="editModalContent">
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @* ═══════════════════════ STUDENT VIEW ═══════════════════════ *@
+    @if (User.IsInRole("Student"))
+    {
+        <div class="ec-card">
+            <div class="ec-card-grid"></div>
+            <p class="ec-card-label">Academic</p>
+            <p class="ec-card-subtitle">Total courses you are currently attending</p>
+            <div class="ec-card-count-wrap">
+                <span class="ec-card-count">@Model.Count()</span>
+                <span class="ec-card-count-tag">enrolled</span>
+            </div>
+            <div class="ec-btn-row">
+                <button type="button" class="ec-btn-view"
+                        data-bs-toggle="modal" data-bs-target="#courseListModal">
+                    View My Courses
+                </button>
+                <button type="button" class="ec-btn-add"
+                        data-bs-toggle="modal" data-bs-target="#addCourseModal"
+                        aria-label="Add Course">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="white" viewBox="0 0 16 16">
+                        <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        @* { { --Course List Modal --} } *@
+        <div class="modal fade ec-modal" id="courseListModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="ec-mhdr">
+                        <div class="ec-mhdr-left">
+                            <div class="ec-mhdr-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="white" viewBox="0 0 16 16">
+                                    <path d="M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811V2.828zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492V2.687zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h5 class="ec-mhdr-title">Enrolled Courses</h5>
+                                <p class="ec-mhdr-sub">Your active academic schedule</p>
+                            </div>
+                        </div>
+                        <button type="button" class="ec-mhdr-close" data-bs-dismiss="modal" aria-label="Close">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="white" viewBox="0 0 16 16">
+                                <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="ec-mbody">
+                        @if (Model.Any())
+                        {
+                            <div class="course-container">
+                                @foreach (var course in Model)
+                                {
+                                    <div class="ec-course-item">
+                                        <div class="ec-course-avatar">
+                                            <span>@course.CourseName.Substring(0, 1).ToUpper()</span>
+                                        </div>
+                                        <div class="ec-course-name">@course.CourseName</div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="ec-empty">
+                                <div class="ec-empty-icon">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="#9aa5c9" viewBox="0 0 16 16">
+                                        <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+                                        <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z" />
+                                    </svg>
+                                </div>
+                                <p>No courses currently assigned.</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* { { --Add Course Modal --} } *@
+        <div class="modal fade ec-modal" id="addCourseModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="ec-add-hdr">
+                        <div class="ec-add-hdr-left">
+                            <div class="ec-add-hdr-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="white" viewBox="0 0 16 16">
+                                    <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
+                                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+                                </svg>
+                            </div>
+                            <h5 class="ec-add-hdr-title">Enroll in New Course</h5>
+                        </div>
+                        <button type="button" class="ec-add-close" data-bs-dismiss="modal" aria-label="Close">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="white" viewBox="0 0 16 16">
+                                <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="ec-add-body">
+                        <form asp-controller="Courses" asp-action="Enroll" method="post">
+                            <div class="mb-3">
+                                <label class="ec-form-label">Select Courses</label>
+                                <select name="courseId" class="ec-select"
+                                        asp-items="ViewBag.AvailableCourses" multiple required>
+                                </select>
+                                <small class="ec-hint">Hold Ctrl (Cmd on Mac) to select multiple.</small>
+                            </div>
+                            <button type="submit" class="ec-btn-enroll">Enroll Now</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

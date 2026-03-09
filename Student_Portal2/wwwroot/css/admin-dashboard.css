@@ -1,0 +1,655 @@
+﻿:root {
+    --ink: #0d1321;
+    --indigo-deep: #1b2b5e;
+    --indigo: #2d3f8a;
+    --indigo-soft: #3d52a8;
+    --amber: #f5a623;
+    --amber-pale: #fcd97e;
+    --surface: #ffffff;
+    --surface-2: #f4f6ff;
+    --text-main: #1a1f3c;
+    --text-muted: #7a85aa;
+    --border: #dde2f3;
+    --green: #2e8b57;
+    --green-pale: #edfaf3;
+    --ff-display: 'Fraunces', Georgia, serif;
+    --ff-body: 'Outfit', sans-serif;
+}
+
+.db-page {
+    font-family: var(--ff-body);
+}
+
+/* ══════════════════════════════════════
+           HERO BANNER
+        ══════════════════════════════════════ */
+.db-hero {
+    background: var(--indigo-deep);
+    border-radius: 20px;
+    padding: 32px 36px;
+    margin-bottom: 28px;
+    position: relative;
+    overflow: hidden;
+}
+
+    .db-hero::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 28px 28px;
+        pointer-events: none;
+    }
+
+    .db-hero::after {
+        content: '';
+        position: absolute;
+        top: -60px;
+        right: -60px;
+        width: 260px;
+        height: 260px;
+        border-radius: 50%;
+/*        background: radial-gradient(circle, rgba(245,166,35,0.18) 0%, transparent 65%);*/
+        pointer-events: none;
+    }
+
+.db-hero-glow {
+    position: absolute;
+    bottom: -50px;
+    left: -40px;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+.db-hero-inner {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.db-hero-eyebrow {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin: 0 0 6px;
+}
+
+.db-hero-title {
+    font-family: var(--ff-display);
+    font-size: 30px;
+    color: #fff;
+    margin: 0 0 4px;
+    line-height: 1.1;
+}
+
+.db-hero-sub {
+    font-size: 13px;
+    color: rgba(255,255,255,0.48);
+    font-weight: 300;
+    margin: 0;
+}
+/* total enrolled pill on the right */
+.db-hero-stat {
+    background: rgba(255,255,255,0.10);
+    border: 1px solid rgba(255,255,255,0.18);
+    border-radius: 18px;
+    padding: 18px 28px;
+    text-align: center;
+    backdrop-filter: blur(8px);
+    min-width: 150px;
+}
+
+.db-hero-stat-num {
+    font-family: var(--ff-display);
+    font-size: 48px;
+    color: #fff;
+    line-height: 1;
+    letter-spacing: -2px;
+}
+
+.db-hero-stat-label {
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--surface);
+    margin-top: 6px;
+}
+
+.db-hero-stat-sub {
+    font-size: 11px;
+    color: rgba(255,255,255,0.40);
+    font-weight: 300;
+    margin-top: 2px;
+}
+
+/* ══════════════════════════════════════
+           STAT CARDS ROW
+        ══════════════════════════════════════ */
+.db-stat-card {
+    border: none !important;
+    border-radius: 16px !important;
+    box-shadow: 0 4px 20px rgba(13,19,33,0.07) !important;
+    padding: 20px 22px;
+    font-family: var(--ff-body);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.22s ease, box-shadow 0.22s ease;
+}
+
+    .db-stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 32px rgba(13,19,33,0.12) !important;
+    }
+
+.db-stat-card-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 14px;
+    flex-shrink: 0;
+}
+
+.db-stat-card-num {
+    font-family: var(--ff-display);
+    font-size: 36px;
+    line-height: 1;
+    letter-spacing: -1px;
+    margin-bottom: 4px;
+}
+
+.db-stat-card-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+
+.db-stat-card-sub {
+    font-size: 12px;
+    font-weight: 300;
+    margin-top: 3px;
+}
+/* indigo variant */
+.db-stat-indigo {
+    background: linear-gradient(145deg, var(--indigo-deep), var(--indigo-soft));
+}
+
+    .db-stat-indigo .db-stat-card-icon {
+        background: rgba(245,166,35,0.18);
+        border: 1px solid rgba(245,166,35,0.30);
+    }
+
+    .db-stat-indigo .db-stat-card-num,
+    .db-stat-indigo .db-stat-card-label {
+        color: #fff;
+    }
+
+    .db-stat-indigo .db-stat-card-sub {
+        color: rgba(255,255,255,0.45);
+    }
+
+/* amber variant */
+.db-stat-amber {
+    background: linear-gradient(145deg, #7a4800, #b06a00);
+}
+
+    .db-stat-amber .db-stat-card-icon {
+        background: rgba(255,255,255,0.15);
+        border: 1px solid rgba(255,255,255,0.22);
+    }
+
+    .db-stat-amber .db-stat-card-num,
+    .db-stat-amber .db-stat-card-label {
+        color: #fff;
+    }
+
+    .db-stat-amber .db-stat-card-sub {
+        color: rgba(255,255,255,0.50);
+    }
+
+/* green variant */
+.db-stat-green {
+    background: linear-gradient(145deg, #1a4d30, var(--green));
+}
+
+    .db-stat-green .db-stat-card-icon {
+        background: rgba(255,255,255,0.15);
+        border: 1px solid rgba(255,255,255,0.22);
+    }
+
+    .db-stat-green .db-stat-card-num,
+    .db-stat-green .db-stat-card-label {
+        color: #fff;
+    }
+
+    .db-stat-green .db-stat-card-sub {
+        color: rgba(255,255,255,0.50);
+    }
+
+/* light variant */
+.db-stat-light {
+    background: var(--surface);
+}
+
+    .db-stat-light .db-stat-card-icon {
+        background: var(--surface-2);
+        border: 1px solid var(--border);
+    }
+
+    .db-stat-light .db-stat-card-num {
+        color: var(--text-main);
+    }
+
+    .db-stat-light .db-stat-card-label {
+        color: var(--text-muted);
+    }
+
+    .db-stat-light .db-stat-card-sub {
+        color: var(--text-muted);
+    }
+
+/* ══════════════════════════════════════
+           SECTION LABEL
+        ══════════════════════════════════════ */
+.db-section-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 0 0 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+    .db-section-label::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+    }
+
+/* ══════════════════════════════════════
+           COURSE TABLE CARD
+        ══════════════════════════════════════ */
+.db-table-card {
+    border: none !important;
+    border-radius: 18px !important;
+    box-shadow: 0 8px 32px rgba(13,19,33,0.08) !important;
+    overflow: hidden;
+    font-family: var(--ff-body);
+}
+
+    .db-table-card .table {
+        margin: 0;
+        font-size: 14px;
+    }
+
+        .db-table-card .table thead th {
+            background: var(--surface-2);
+            color: var(--text-muted);
+            font-size: 10.5px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            border-bottom: 1.5px solid var(--border);
+            padding: 14px 20px;
+        }
+
+        .db-table-card .table tbody td {
+            padding: 14px 20px;
+            color: var(--text-main);
+            border-color: var(--border);
+            vertical-align: middle;
+        }
+
+        .db-table-card .table tbody tr:hover {
+            background: var(--surface-2);
+        }
+
+/* Course name cell */
+.db-course-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.db-course-avatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 11px;
+    background: linear-gradient(135deg, var(--indigo-deep), var(--indigo-soft));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--ff-display);
+    font-size: 15px;
+    color: #fff;
+    flex-shrink: 0;
+    box-shadow: 0 3px 10px rgba(29,43,94,0.20);
+}
+
+.db-course-name {
+    font-weight: 500;
+    color: var(--text-main);
+}
+
+/* Count badge */
+.db-count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 32px;
+    height: 26px;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    font-family: var(--ff-body);
+}
+
+.db-count-badge-full {
+    background: rgba(61,82,168,0.10);
+    color: var(--indigo-soft);
+    border: 1px solid rgba(61,82,168,0.20);
+}
+
+
+
+/* Student pill list */
+.db-student-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.db-student-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 4px 11px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-main);
+    transition: all 0.18s ease;
+    cursor: default;
+}
+
+    .db-student-pill:hover {
+        border-color: var(--indigo-soft);
+        color: var(--indigo-soft);
+        background: rgba(61,82,168,0.05);
+    }
+
+.db-student-pill-avatar {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--indigo-deep), var(--indigo-soft));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.db-no-enroll {
+    font-size: 12.5px;
+    color: var(--text-muted);
+    font-style: italic;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+/* View Students button */
+.btn-db-view {
+    font-family: var(--ff-body) !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    border-radius: 999px !important;
+    padding: 5px 14px !important;
+    border: 1.5px solid var(--border) !important;
+    color: var(--indigo-soft) !important;
+    background: transparent !important;
+    transition: all 0.18s ease !important;
+    white-space: nowrap;
+}
+
+    .btn-db-view:hover {
+        background: rgba(61,82,168,0.06) !important;
+        border-color: var(--indigo-soft) !important;
+        transform: translateY(-1px);
+    }
+.btn-db-add-student {
+    font-family: var(--ff-body) !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    border-radius: 999px !important;
+    padding: 5px 14px !important;
+    border: 1.5px solid var(--border) !important;
+    color: var(--indigo-soft) !important;
+    background: transparent !important;
+    transition: all 0.18s ease !important;
+    white-space: nowrap;
+}
+
+    .btn-db-add-student:hover {
+        background: rgba(61,82,168,0.06) !important;
+        border-color: var(--indigo-soft) !important;
+        transform: translateY(-1px);
+    }
+
+/* ── Remove button in modal ── */
+.btn-db-remove {
+    font-family: var(--ff-body) !important;
+    font-size: 11.5px !important;
+    font-weight: 500 !important;
+    border-radius: 999px !important;
+    padding: 4px 12px !important;
+    border: 1.5px solid #f5c0c0 !important;
+    color: var(--danger) !important;
+    background: transparent !important;
+    transition: all 0.18s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    flex-shrink: 0;
+}
+
+.btn-db-remove:hover {
+    background: rgba(224,82,82,0.06) !important;
+    border-color: var(--danger) !important;
+    transform: translateY(-1px);
+}
+
+.btn-db-remove:disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+/* ══════════════════════════════════════
+           STUDENTS MODAL
+        ══════════════════════════════════════ */
+.db-modal .modal-content {
+    border: none !important;
+    border-radius: 22px !important;
+    overflow: hidden;
+    box-shadow: 0 32px 80px rgba(13,19,33,0.20) !important;
+    font-family: var(--ff-body);
+}
+
+.db-modal-header {
+    background: linear-gradient(135deg, var(--indigo-deep), var(--indigo-soft));
+    padding: 22px 26px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+}
+
+    .db-modal-header::after {
+        content: '';
+        position: absolute;
+        top: -40px;
+        right: -40px;
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(245,166,35,0.20) 0%, transparent 65%);
+        pointer-events: none;
+    }
+
+.db-modal-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: rgba(245,166,35,0.15);
+    border: 1px solid rgba(245,166,35,0.30);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-right: 12px;
+}
+
+.db-modal-title {
+    font-family: var(--ff-display);
+    font-size: 18px;
+    color: #fff;
+    margin: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.db-modal-sub {
+    font-size: 11.5px;
+    color: rgba(255,255,255,0.45);
+    margin: 2px 0 0;
+    font-weight: 300;
+    position: relative;
+    z-index: 1;
+}
+
+.db-modal-close {
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.28s ease;
+    padding: 0;
+}
+
+    .db-modal-close:hover {
+        background: rgba(255,255,255,0.22);
+        border-color: var(--amber);
+        transform: rotate(90deg) scale(1.1);
+    }
+
+.db-modal-body {
+    padding: 24px;
+    background: var(--surface-2);
+    max-height: 400px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #c5cbe8 transparent;
+}
+
+    .db-modal-body::-webkit-scrollbar {
+        width: 5px;
+    }
+
+    .db-modal-body::-webkit-scrollbar-thumb {
+        background: #c5cbe8;
+        border-radius: 10px;
+    }
+
+/* Student row inside modal */
+.db-modal-student {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    margin-bottom: 8px;
+    transition: border-color 0.18s ease;
+}
+
+    .db-modal-student:last-child {
+        margin-bottom: 0;
+    }
+
+    .db-modal-student:hover {
+        border-color: var(--indigo-soft);
+    }
+
+.db-modal-student-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--indigo-deep), var(--indigo-soft));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--ff-display);
+    font-size: 13px;
+    color: #fff;
+    flex-shrink: 0;
+    box-shadow: 0 2px 8px rgba(29,43,94,0.18);
+}
+
+.db-modal-student-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-main);
+    flex:1;
+}
+
+.db-modal-empty {
+    text-align: center;
+    padding: 36px 20px;
+}
+
+.db-modal-empty-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #edf0fb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+}
+
+.db-modal-empty p {
+    font-size: 13.5px;
+    color: var(--text-muted);
+    margin: 0;
+}

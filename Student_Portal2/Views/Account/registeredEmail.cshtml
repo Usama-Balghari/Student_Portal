@@ -1,0 +1,60 @@
+﻿@model Student_Portal2.Models.RegisterViewModel;
+
+@if (TempData["ConfirmToResetPassword"] !=null)
+{
+    <div class="alert alert-success" id="msg">
+        @TempData["ConfirmToResetPassword"]
+    </div>
+}
+@if (TempData["NoData"] != null)
+{
+    <div class="alert alert-success" id="msg">
+        @TempData["NoData"]
+    </div>
+}
+@if (TempData["ResetPassword"] != null)
+{
+    <div class="alert alert-success" id="mssg">
+        @Html.Raw(TempData["ResetPassword"])
+    </div>
+}
+@if (TempData["AResetPassword"] != null)
+{
+    <div class="alert alert-success" id="mssg">
+        @Html.Raw(TempData["AResetPassword"])
+    </div>
+}
+<div class="card bg-secondary shadow border-0 mx-auto" style="max-width: 520px;">
+    <div class="card-header bg-gradient pb-2">
+        <div class="text-center text-white mb-4 login-header h4">
+            <div>
+                Reset Password
+            </div>
+        </div>
+    </div>
+    <div class="card-body px-lg-5 py-lg-2 bg-light">
+        <div class="text-center text-black mb-4">
+            <p>
+                Enter your registered email address and click send
+            </p>
+        </div>
+        <form asp-action="registeredEmail" method="post">
+            <div class="form-group mb-3">
+                <div class="align-items-center">
+                    <input asp-for="Email"
+                           class="form-control mx-auto"
+                           placeholder="Email"
+                           style="max-width: 350px;">
+                    <span asp-validation-for="Email" class="text-danger"></span>
+
+                </div>
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <!----><!---->
+            </div>
+            <div class="text-center">
+                <button type="submit" class="btn btn-primary my-4">Send Request</button>
+            </div>
+        </form>
+    </div>
+</div>

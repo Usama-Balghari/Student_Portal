@@ -1,0 +1,326 @@
+﻿@model IEnumerable<Student_Portal2.Models.Course>
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+
+
+<div class="db-page">
+
+    @* {{-- ═══════════ HERO ═══════════ --}} *@
+    <div class="db-hero">
+        <div class="db-hero-glow"></div>
+        <div class="db-hero-inner">
+            <div>
+                <p class="db-hero-eyebrow">Overview</p>
+                <h1 class="db-hero-title">Admin Dashboard</h1>
+                <p class="db-hero-sub">Live snapshot of your student portal</p>
+            </div>
+            
+        </div>
+    </div>
+
+    @* {{-- ═══════════ STAT CARDS ═══════════ --}} *@
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card db-stat-card db-stat-indigo">
+                <div class="db-stat-card-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="white" viewBox="0 0 16 16">
+                        <path d="M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811V2.828zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492V2.687zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783z" />
+                    </svg>
+                </div>
+                <div class="db-stat-card-num">@Model.Count()</div>
+                <div class="db-stat-card-label">Total Courses</div>
+                <div class="db-stat-card-sub">active in portal</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card db-stat-card db-stat-amber">
+                <div class="db-stat-card-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="white" viewBox="0 0 16 16">
+                        <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
+                        <path fill-rule="evenodd" d="M5.216 14A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216z" />
+                        <path d="M4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z" />
+                    </svg>
+                </div>
+                <div class="db-stat-card-num" id="totalEnrolledStudents">
+                    @ViewBag.TotalEnrolledStudents
+                </div>
+                <div class="db-hero-stat-label">Total Students</div>
+                <div class="db-hero-stat-sub">enrolled in courses</div>
+            </div>
+        </div>
+    </div>
+
+    @* {{-- ═══════════ COURSES TABLE ═══════════ --}} *@
+    <p class="db-section-label">Enrollment Breakdown by Course</p>
+
+    <div class="card db-table-card">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th>Course</th>
+                        <th style="width:200px;">Students</th>
+                        @* <th>Enrolled</th> *@
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var course in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div class="db-course-cell">
+                                    <div class="db-course-avatar">
+                                        @course.CourseName.Substring(0, 1).ToUpper()
+                                    </div>
+                                    <span class="db-course-name">@course.CourseName</span>
+                                </div>
+                            </td>
+                            <td>
+                                @if (course.Students.Any())
+                                {
+                                    <span class="db-count-badge db-count-badge-full" id="courseCount-@course.Id">
+                                        @course.Students.Count
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="db-no-enroll" id="noEnroll-@course.Id" style="display:none;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="#b0bace" viewBox="0 0 16 16">
+                                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+                                            <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z" />
+                                        </svg>
+                                        No enrollments
+                                    </span>
+                                }
+                            </td>
+                            
+                            <td>
+                                <div class="d-flex gap-2 flex-wrap">
+                                @if (course.Students.Any())
+                                {
+                                    <button class="btn btn-db-view"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#studentsModal-@course.Id">
+                                        View All
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor" viewBox="0 0 16 16" style="margin-left:3px;">
+                                            <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708z" />
+                                        </svg>
+                                    </button>
+                                }
+                                    <button class="btn btn-db-add-student addStudentBtn"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#addStudentModal"
+                                            data-course-id="@course.Id"
+                                            data-course-name="@course.CourseName">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16">
+                                            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
+                                        </svg>
+                                        Add Student
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        @* { { --Per - course students modal --} } *@
+                        <div class="modal fade db-modal" id="studentsModal-@course.Id" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+
+                                    @* {{-- Indigo header --}} *@
+                                    <div class="db-modal-header">
+                                        <div class="d-flex align-items-center" style="position:relative;z-index:1;">
+                                            <div class="db-modal-icon">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="white" viewBox="0 0 16 16">
+                                                    <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
+                                                    <path fill-rule="evenodd" d="M5.216 14A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216z" />
+                                                    <path d="M4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z" />
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <h5 class="db-modal-title">@course.CourseName</h5>
+                                                <p class="db-modal-sub" id="enrollCount-@course.Id">
+                                                    @course.Students.Count enrolled student@(course.Students.Count == 1 ? "" : "s")
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex align-items-center gap-2" style="position:relative;z-index:1;">
+
+                                            <button type="button" class="db-modal-close" data-bs-dismiss="modal">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" viewBox="0 0 16 16">
+                                                    <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    @* {{-- Student list body --}} *@
+                                    <div class="db-modal-body" id="studentList-@course.Id">
+                                        @if (course.Students.Any())
+                                        {
+                                            @foreach (var student in course.Students)
+                                            {
+                                                <div class="db-modal-student" id="studentRow-@course.Id-@student.Id">
+                                                    <div class="db-modal-student-avatar">
+                                                        @((student.User?.FirstName ?? "?").Substring(0, 1).ToUpper())
+                                                    </div>
+                                                    <span class="db-modal-student-name">
+                                                        @student.User?.FirstName @student.User?.LastName
+                                                    </span>
+                                                    <button class="btn btn-db-remove removeStudentBtn"
+                                                            data-course-id="@course.Id"
+                                                            data-student-id="@student.Id">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor" viewBox="0 0 16 16">
+                                                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z" />
+                                                            <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z" />
+                                                        </svg>
+                                                        Remove
+                                                    </button>
+                                                </div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <div class="db-modal-empty" id="emptyState-@course.Id">
+                                                <div class="db-modal-empty-icon">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="#9aa5c9" viewBox="0 0 16 16">
+                                                        <path d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
+                                                        <path fill-rule="evenodd" d="M5.216 14A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216z" />
+                                                        <path d="M4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z" />
+                                                    </svg>
+                                                </div>
+                                                <p style="margin:0;font-size:13px;color:var(--text-muted);">No students enrolled yet.</p>
+                                            </div>
+                                        }
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    }
+                        <div class="modal fade db-modal" id="addStudentModal" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+
+                                    @* {{-- Green header --}} *@
+                                    <div class="db-modal-header">
+                                        <div class="d-flex align-items-center">
+                                            <div class="db-modal-icon">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="white" viewBox="0 0 16 16">
+                                                    <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
+                                                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+                                                </svg>
+                                            </div>
+                                            <div>
+                                                <h5 class="db-modal-title" id="addModalTitle">Add Student</h5>
+                                                <p class="db-modal-sub" id="addModalSub">Select a student to enroll</p>
+                                            </div>
+                                        </div>
+                                        <button type="button" class="db-modal-close" data-bs-dismiss="modal">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" viewBox="0 0 16 16">
+                                                <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
+                                            </svg>
+                                        </button>
+                                    </div>
+
+                                    <div class="db-modal-body" id="addStudentList">
+                                    <p class="text-center py-3" style="color:var(--text-muted);font-size:13px;">Loading…</p>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+
+@section Scripts {
+
+    <script>
+
+        $(document).ready(function(){
+
+            $(".addStudentBtn").click(function () {
+
+                var courseId = $(this).data("course-id");
+                var courseName = $(this).data("course-name");
+
+                $("#addModalTitle").text("Add Student - " + courseName);
+
+                $("#addStudentList").html("Loading...");
+
+                $("#addStudentList").load("/Courses/GetStudentsForCourse?courseId=" + courseId);
+
+            });
+
+        });
+        //////////////////////////////////////////////////////////////////////////////////////////
+                $(document).on("click", ".removeStudentBtn", function () {
+
+            var button = $(this);
+
+            var courseId = button.data("course-id");
+            var studentId = button.data("student-id");
+
+            if (!confirm("Are you sure you want to remove this student?"))
+                return;
+
+            $.ajax({
+                url: "/Courses/RemoveStudentFromCourse",
+                type: "POST",
+                data: {
+                    courseId: courseId,
+                    studentId: studentId
+                },
+                       success: function (response) {
+
+            if (response.success) {
+
+                // remove student row
+                $("#studentRow-" + courseId + "-" + studentId).remove();
+
+                // modal count
+                var modalCount = parseInt($("#enrollCount-" + courseId).text());
+
+                modalCount--;
+
+                $("#enrollCount-" + courseId).text(modalCount + " enrolled students");
+
+                // table badge count
+                var tableCount = parseInt($("#courseCount-" + courseId).text());
+
+                tableCount--;
+
+                if (tableCount > 0) {
+
+                    $("#courseCount-" + courseId).text(tableCount);
+
+                } else {
+
+                    // hide badge
+                    $("#courseCount-" + courseId).hide();
+
+                    // show "No enrollments"
+                    $("#noEnroll-" + courseId).show();
+
+                }
+                 var totalStudents = parseInt($("#totalEnrolledStudents").text());
+
+                 totalStudents--;
+
+                 $("#totalEnrolledStudents").text(totalStudents);
+            }
+        }
+
+            });
+
+        });
+    </script>
+
+}

@@ -1,0 +1,189 @@
+﻿@{
+    ViewData["Title"] = "Manage Users";
+}
+
+
+
+@* {{-- Alerts --}} *@
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="sp-alert-danger" id="msg">@TempData["ErrorMessage"]</div>
+}
+@if (TempData["Success"] != null)
+{
+    <div class="sp-alert-success" id="msg">@TempData["Success"]</div>
+}
+
+@* {{-- Page Header --}} *@
+<div class="users-page-header">
+    <p class="users-page-eyebrow">Administration</p>
+    <h1 class="users-page-title">Manage Users</h1>
+</div>
+
+@* {{-- Create New button --}} *@
+<div class="mb-3">
+    <button class="btn btn-create-new"
+            data-bs-toggle="modal" data-bs-target="#createModal">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
+        </svg>
+        Create New
+    </button>
+</div>
+
+@* {{-- Users Table --}} *@
+<div class="card users-table-card">
+    <div class="card-body p-0">
+        <table id="tblViewProfile" class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th style="width:120px;">Role</th>
+                    <th style="width:340px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model)
+                {
+                    <tr>
+                        <td>
+                            <div class="user-email-cell">
+                                <div class="user-avatar">
+                                    @user.Email.Substring(0, 1).ToUpper()
+                                </div>
+                                <span class="user-email-text">@user.Email</span>
+                            </div>
+                        </td>
+                        <td>
+                            @if (user.IsAdmin)
+                            {
+                                <span class="badge-admin">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="currentColor" viewBox="0 0 16 16">
+                                        <path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z" />
+                                    </svg>
+                                    Admin
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge-student">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" fill="currentColor" viewBox="0 0 16 16">
+                                        <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4z" />
+                                    </svg>
+                                    Student
+                                </span>
+                            }
+                        </td>
+                        <td>
+                            <div class="d-flex gap-2 flex-wrap">
+
+                                @* {{-- View Profile --}} *@
+                                <a asp-action="ViewUserProfile"
+                                   asp-route-userId="@user.UserId"
+                                   class="btn btn-tbl-view view-profile-btn"
+                                   data-id="@user.UserId">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor" viewBox="0 0 16 16">
+                                        <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 3.5 8 3.5c2.12 0 3.879 1.168 5.168 2.457A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12.5 8 12.5c-2.12 0-3.879-1.168-5.168-2.457A13.134 13.134 0 0 1 1.172 8z" />
+                                        <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z" />
+                                    </svg>
+                                    View
+                                </a>
+
+                                @* {{-- Toggle Admin --}} *@
+                                <form asp-action="ToggleAdmin" method="post" class="d-inline">
+                                    <input type="hidden" name="userId" value="@user.UserId" />
+                                    <input type="hidden" name="makeAdmin" value="@(user.IsAdmin ? "false" : "true")" />
+                                    @if (user.IsAdmin)
+                                    {
+                                        <button type="submit" class="btn btn-tbl-revoke">
+                                            Revoke Admin
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button type="submit" class="btn btn-tbl-make-admin">
+                                            Make Admin
+                                        </button>
+                                    }
+                                </form>
+
+                                @* {{-- Delete --}} *@
+                                <button class="btn btn-tbl-delete delete-btn" data-id="@user.UserId">
+                                    Delete
+                                </button>
+
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@* {{-- View Profile Modal --}} *@
+<div class="modal fade sp-modal" id="ViewProfileModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="sp-modal-header">
+                <div class="d-flex align-items-center" style="position:relative;z-index:1;">
+                    <div class="sp-modal-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="white" viewBox="0 0 16 16">
+                            <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h5 class="sp-modal-title">User Profile</h5>
+                        <p class="sp-modal-sub">View account details</p>
+                    </div>
+                </div>
+                <button type="button" class="sp-modal-close" data-bs-dismiss="modal">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" viewBox="0 0 16 16">
+                        <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
+                    </svg>
+                </button>
+            </div>
+            <div class="sp-modal-body" id="editModalContent">
+            </div>
+        </div>
+    </div>
+</div>
+
+@* {{-- Create Student Modal --}} *@
+<div class="modal fade sp-modal" id="createModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="sp-modal-header">
+                <div class="d-flex align-items-center" style="position:relative;z-index:1;">
+                    <div class="sp-modal-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="white" viewBox="0 0 16 16">
+                            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
+                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h5 class="sp-modal-title">Create User</h5>
+                        <p class="sp-modal-sub">Register a new User account</p>
+                    </div>
+                </div>
+                <button type="button" class="sp-modal-close" data-bs-dismiss="modal">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" viewBox="0 0 16 16">
+                        <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
+                    </svg>
+                </button>
+            </div>
+            <div class="sp-modal-body">
+                @await Html.PartialAsync("_CreatePartial", new Student_Portal2.Models.UserEditViewModel())
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+

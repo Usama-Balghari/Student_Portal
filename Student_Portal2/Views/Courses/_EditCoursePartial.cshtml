@@ -1,0 +1,36 @@
+﻿@model Student_Portal2.Models.Course
+
+<form id="editCourseForm" asp-action="Edit">
+
+    <div class="modal-body" style="padding: 26px;">
+        <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+        <input type="hidden" asp-for="Id" />
+
+        <div class="mb-2">
+            <label asp-for="CourseName" class="sp-form-label">Course Name</label>
+            <input asp-for="CourseName"
+                   class="sp-form-control"
+                   placeholder="e.g. Introduction to Programming" />
+            <span asp-validation-for="CourseName" class="text-danger small mt-1 d-block"></span>
+        </div>
+    </div>
+
+    <div class="modal-footer" style="border-top: 1px solid #dde2f3; padding: 18px 26px; background: #f4f6ff; border-radius: 0 0 22px 22px;">
+        <button type="button"
+                class="btn btn-sp-cancel"
+                data-bs-dismiss="modal">
+            Cancel
+        </button>
+        <button type="submit" class="btn btn-sp-update">
+            Save Changes
+        </button>
+    </div>
+
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

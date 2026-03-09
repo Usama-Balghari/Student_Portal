@@ -1,0 +1,451 @@
+﻿:root {
+    --ink: #0d1321;
+    --indigo-deep: #1b2b5e;
+    --indigo: #2d3f8a;
+    --indigo-soft: #3d52a8;
+    --amber: #f5a623;
+    --amber-pale: #fcd97e;
+    --surface: #ffffff;
+    --surface-2: #f4f6ff;
+    --text-main: #1a1f3c;
+    --text-muted: #7a85aa;
+    --border: #dde2f3;
+    --danger: #e05252;
+    --ff-display: 'Fraunces', Georgia, serif;
+    --ff-body: 'Outfit', sans-serif;
+}
+
+/* ── Page header ── */
+.dept-page-header {
+    background: var(--indigo-deep);
+    border-radius: 18px;
+    padding: 28px 32px;
+    margin-bottom: 28px;
+    position: relative;
+    overflow: hidden;
+    font-family: var(--ff-body);
+}
+
+    .dept-page-header::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+        background-size: 28px 28px;
+        pointer-events: none;
+    }
+
+    .dept-page-header::after {
+        content: '';
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+/*        background: radial-gradient(circle, rgba(245,166,35,0.20) 0%, transparent 65%);*/
+        pointer-events: none;
+    }
+
+.dept-page-eyebrow {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--amber);
+    margin: 0 0 4px;
+    position: relative;
+    z-index: 1;
+}
+
+.dept-page-title {
+    font-family: var(--ff-display);
+    font-size: 26px;
+    color: #fff;
+    margin: 0;
+    position: relative;
+    z-index: 1;
+}
+
+/* ── Alert ── */
+#success-alert {
+    border-radius: 12px;
+    font-family: var(--ff-body);
+    font-size: 13.5px;
+    border: none;
+    background: #a5e6c8;
+    color: #1f6e46;
+    border-left: 4px solid #4caf82;
+}
+
+/* ── Create New button ── */
+.btn-create-new {
+    background: var(--amber) !important;
+    border: none !important;
+    color: var(--ink) !important;
+    font-family: var(--ff-body) !important;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    border-radius: 999px !important;
+    padding: 9px 22px !important;
+    box-shadow: 0 4px 14px rgba(245,166,35,0.35) !important;
+    transition: all 0.22s ease !important;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+}
+
+    .btn-create-new:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 22px rgba(245,166,35,0.48) !important;
+        filter: brightness(1.05);
+        color: var(--ink) !important;
+    }
+
+/* ── Table card ── */
+.dept-table-card {
+    border: none !important;
+    border-radius: 18px !important;
+    box-shadow: 0 8px 32px rgba(13,19,33,0.08) !important;
+    overflow: hidden;
+    font-family: var(--ff-body);
+}
+
+    .dept-table-card .table {
+        margin: 0;
+        font-size: 14px;
+    }
+
+        .dept-table-card .table thead th {
+            background: var(--surface-2);
+            color: var(--text-muted);
+            font-size: 10.5px;
+            font-weight: 600;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            border-bottom: 1.5px solid var(--border);
+            padding: 14px 20px;
+        }
+
+        .dept-table-card .table tbody td {
+            padding: 13px 20px;
+            color: var(--text-main);
+            border-color: var(--border);
+            vertical-align: middle;
+        }
+
+        .dept-table-card .table tbody tr:hover {
+            background: var(--surface-2);
+        }
+
+/* ID badge */
+.dept-id-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+}
+
+/* Department name cell */
+.dept-name-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.dept-name-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, var(--indigo-deep), var(--indigo-soft));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--ff-display);
+    font-size: 15px;
+    color: #fff;
+    flex-shrink: 0;
+    box-shadow: 0 3px 10px rgba(29,43,94,0.20);
+}
+
+.dept-name-text {
+    font-weight: 500;
+    color: var(--text-main);
+}
+
+/* Action buttons */
+.btn-tbl-edit {
+    font-family: var(--ff-body) !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    border-radius: 999px !important;
+    padding: 5px 16px !important;
+    border: 1.5px solid var(--border) !important;
+    color: var(--indigo-soft) !important;
+    background: transparent !important;
+    transition: all 0.18s ease !important;
+}
+
+    .btn-tbl-edit:hover {
+        background: rgba(61,82,168,0.06) !important;
+        border-color: var(--indigo-soft) !important;
+        transform: translateY(-1px);
+    }
+
+.btn-tbl-delete {
+    font-family: var(--ff-body) !important;
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    border-radius: 999px !important;
+    padding: 5px 16px !important;
+    border: 1.5px solid #f5c0c0 !important;
+    color: var(--danger) !important;
+    background: transparent !important;
+    transition: all 0.18s ease !important;
+}
+
+    .btn-tbl-delete:hover {
+        background: rgba(224,82,82,0.06) !important;
+        border-color: var(--danger) !important;
+        transform: translateY(-1px);
+    }
+
+/* ── Modal shared ── */
+.sp-modal .modal-content {
+    border: none !important;
+    border-radius: 22px !important;
+    overflow: hidden;
+    box-shadow: 0 32px 80px rgba(13,19,33,0.20) !important;
+    font-family: var(--ff-body);
+}
+
+/* ── Modal header ── */
+.sp-modal-header {
+    background: linear-gradient(135deg, var(--indigo-deep), var(--indigo-soft));
+    padding: 22px 26px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+}
+
+    .sp-modal-header::after {
+        content: '';
+        position: absolute;
+        top: -40px;
+        right: -40px;
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(245,166,35,0.18) 0%, transparent 65%);
+        pointer-events: none;
+    }
+
+.sp-modal-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: rgba(245,166,35,0.15);
+    border: 1px solid rgba(245,166,35,0.30);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-right: 12px;
+}
+
+.sp-modal-title {
+    font-family: var(--ff-display);
+    font-size: 18px;
+    color: #fff;
+    margin: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.sp-modal-sub {
+    font-size: 11.5px;
+    color: rgba(255,255,255,0.45);
+    margin: 2px 0 0;
+    font-weight: 300;
+    position: relative;
+    z-index: 1;
+}
+
+.sp-modal-close {
+    width: 34px;
+    height: 34px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.10);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.22s ease;
+    padding: 0;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+}
+
+    .sp-modal-close:hover {
+        background: rgba(255,255,255,0.22);
+        transform: rotate(90deg) scale(1.1);
+    }
+
+.sp-modal-body {
+    padding: 26px;
+    background: var(--surface);
+}
+/*Create Department Button*/
+.sp-form-label {
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-muted, #7a85aa);
+    margin-bottom: 7px;
+    display: block;
+}
+
+.sp-form-control {
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 14px !important;
+    background: #f4f6ff !important;
+    border: 1.5px solid #dde2f3 !important;
+    border-radius: 11px !important;
+    padding: 11px 14px !important;
+    color: #1a1f3c !important;
+    transition: border-color 0.2s, box-shadow 0.2s !important;
+    width: 100%;
+}
+
+    .sp-form-control:focus {
+        border-color: #3d52a8 !important;
+        box-shadow: 0 0 0 4px rgba(61,82,168,0.10) !important;
+        background: #fff !important;
+        outline: none;
+    }
+
+    .sp-form-control::placeholder {
+        color: #b0bace !important;
+    }
+
+.btn-sp-submit {
+    background: linear-gradient(135deg, #f5a623, #fcd97e) !important;
+    border: none !important;
+    color: #0d1321 !important;
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    border-radius: 999px !important;
+    padding: 11px 28px !important;
+    box-shadow: 0 5px 18px rgba(245,166,35,0.35) !important;
+    transition: all 0.22s ease !important;
+    cursor: pointer;
+}
+
+    .btn-sp-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 26px rgba(245,166,35,0.48) !important;
+        filter: brightness(1.05);
+        color: #0d1321 !important;
+    }
+
+    .btn-sp-submit:active {
+        transform: translateY(0) !important;
+    }
+
+/*Edit Deparrtment Button*/
+.sp-form-label {
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: var(--text-muted, #7a85aa);
+    margin-bottom: 7px;
+    display: block;
+}
+
+.sp-form-control {
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 14px !important;
+    background: #f4f6ff !important;
+    border: 1.5px solid #dde2f3 !important;
+    border-radius: 11px !important;
+    padding: 11px 14px !important;
+    color: #1a1f3c !important;
+    transition: border-color 0.2s, box-shadow 0.2s !important;
+    width: 100%;
+}
+
+    .sp-form-control:focus {
+        border-color: #3d52a8 !important;
+        box-shadow: 0 0 0 4px rgba(61,82,168,0.10) !important;
+        background: #fff !important;
+        outline: none;
+    }
+
+    .sp-form-control::placeholder {
+        color: #b0bace !important;
+    }
+
+.btn-sp-submit {
+    background: linear-gradient(135deg, #f5a623, #fcd97e) !important;
+    border: none !important;
+    color: #0d1321 !important;
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 14px !important;
+    font-weight: 600 !important;
+    border-radius: 999px !important;
+    padding: 11px 28px !important;
+    box-shadow: 0 5px 18px rgba(245,166,35,0.35) !important;
+    transition: all 0.22s ease !important;
+    cursor: pointer;
+}
+
+    .btn-sp-submit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 26px rgba(245,166,35,0.48) !important;
+        filter: brightness(1.05);
+        color: #0d1321 !important;
+    }
+
+    .btn-sp-submit:active {
+        transform: translateY(0) !important;
+    }
+
+.btn-sp-back {
+    font-family: 'Outfit', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: #7a85aa;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 0;
+    transition: color 0.2s;
+}
+
+    .btn-sp-back:hover {
+        color: #3d52a8;
+    }
+
+    .btn-sp-back svg {
+        transition: transform 0.2s;
+    }
+
+    .btn-sp-back:hover svg {
+        transform: translateX(-3px);
+    }
+

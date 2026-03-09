@@ -1,0 +1,807 @@
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
+using Student_Portal2.Data;
+using Student_Portal2.Models;
+using System.Net;
+using System.Security.Claims;
+
+namespace Student_Portal2.Controllers
+{
+    public class AccountController : Controller
+    {
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IEmailSender _emailSender;
+        private readonly ILogger<ApplicationUser> _logger;
+        private readonly ApplicationDBContext _context;
+        public AccountController(UserManager<ApplicationUser> userManager,
+                                 SignInManager<ApplicationUser> signInManager,
+                                 IEmailSender emailSender,
+                                 ILogger<ApplicationUser> logger,
+                                 ApplicationDBContext context
+                                 )
+        {
+            _userManager = userManager;
+            _signInManager = signInManager;
+            _emailSender = emailSender;
+            _logger = logger;
+            _context = context;
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Policy = "AdminOnly")]
+        public async Task<IActionResult> Create(UserEditViewModel model)
+        {
+            //ModelState.Remove("LastName");
+            //ModelState.Remove("FirstName");
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    // 1. Create the login account (ApplicationUser)
+                    var user = new ApplicationUser
+                    {
+                        UserName = model.UserName,
+                        Email = model.Email,
+                        FirstName = model.FirstName,
+                        LastName = model.LastName,
+                        EmailConfirmed = true
+                    };
+
+                    var result = await _userManager.CreateAsync(user, model.NewPassword);
+                    if (!result.Succeeded)
+                    {
+                        foreach (var error in result.Errors)
+                            ModelState.AddModelError("", error.Description);
+
+                        return PartialView("_CreatePartial");
+                    }
+                    if (result.Succeeded)
+                    {
+                        var student = new Student { UserId = user.Id };
+
+                        var roleName = model.IsAdmin ? "Admin" : "Student";
+                        await _userManager.AddToRoleAsync(user, roleName);
+
+                        _context.Add(student);
+                        await _context.SaveChangesAsync();
+
+                        await transaction.CommitAsync();
+                        TempData["success"] = "Student and User account created!";
+                        return RedirectToAction(nameof(ManageUsers));
+                    }
+
+                    foreach (var error in result.Errors)
+                        ModelState.AddModelError("", error.Description);
+                }
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                ModelState.AddModelError("", "An error occurred while creating the student.");
+            }
+
+            return PartialView("_CreatePartial");
+        }
+
+        [HttpPost]
+        [Authorize(Policy = "AdminOnly")]
+        public async Task<IActionResult> DeleteUser(string userId)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                var currentUserId = _userManager.GetUserId(User);
+
+                if (userId == currentUserId)
+                {
+                    return Json(new { success = false, message = "You cannot delete your own account." });
+                }
+
+                var user = await _userManager.FindByIdAsync(userId);
+                if (user == null)
+                {
+                    return Json(new { success = false, message = "User not found." });
+                }
+
+                var student = await _context.Student
+                    .FirstOrDefaultAsync(s => s.UserId == userId);
+
+                if (student != null)
+                {
+                    _context.Student.Remove(student);
+                    await _context.SaveChangesAsync();
+                }
+
+                var result = await _userManager.DeleteAsync(user);
+
+                if (!result.Succeeded)
+                {
+                    return Json(new { success = false, message = "Delete failed." });
+                }
+
+                await transaction.CommitAsync();
+
+                return Json(new { success = true });
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                return Json(new { success = false, message = "Server error." });
+            }
+        }
+        [HttpGet]
+        public IActionResult Register()
+        {
+            
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Register(RegisterViewModel model)
+        {
+            ModelState.Remove("Token");
+            ModelState.Remove("Password");
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    return View(model);
+                }
+               
+                var user = new ApplicationUser
+                {
+                    FirstName = model.FirstName
+                    ,
+                    LastName = model.LastName
+                    ,
+                    UserName = model.UserName
+                    ,
+                    Email = model.Email
+                };
+                var result = await _userManager.CreateAsync(user, model.NewPassword);
+
+                if (!result.Succeeded)
+                {
+
+                    foreach (var error in result.Errors)
+                    {
+                        ModelState.AddModelError("", error.Description);
+                    }
+                    return View(model);
+
+                }
+                if (result.Succeeded)
+                {
+                    var student = new Student { UserId = user.Id };
+
+                    await _userManager.AddToRoleAsync(user, "Student");
+
+                    _context.Add(student);
+                    await _context.SaveChangesAsync();
+
+                    await transaction.CommitAsync();
+
+
+                    var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                    var confirmationLink = Url.Action(
+                        nameof(ConfirmEmail),
+                        "Account",
+                        new { token, email = user.Email },
+                        Request.Scheme
+                        );
+                    await _emailSender.SendEmailAsync(
+                        user.Email,
+                        "Confirmation email link",
+                        $"To Confirm Email: <a href='{confirmationLink}'>Click here</a>"
+                        );
+                    //await _userManager.AddToRoleAsync(user, "Visitor");
+                    TempData["SuccessRegistration"] = "Registration successful!!\nPlease check your email to confirm your email first!!";
+                    return RedirectToAction("Login");
+                }
+                foreach (var error in result.Errors)
+                    ModelState.AddModelError("", error.Description);
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                ModelState.AddModelError("", "An error occurred while creating the User.");
+            }
+            return RedirectToAction("Register", model);
+        }
+
+            [HttpGet]
+        public async Task<IActionResult> ConfirmEmail(string token, string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+                return View("Error");
+
+            var result = await _userManager.ConfirmEmailAsync(user, token);
+            TempData["ConfirmEmail"] = " Thank you for confirming your email.";
+            return RedirectToAction(result.Succeeded ? nameof(Login) : "Error");
+        }
+        [HttpGet]
+        public IActionResult Login(string returnUrl = null)
+        {
+            if (returnUrl != null)
+            {
+                ViewBag.Message = "You must login first to access that page";
+            }
+            ViewData["ReturnUrl"] = returnUrl;
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Login(RegisterViewModel model,string returnUrl = null)
+        {
+            ModelState.Remove("ConfirmPassword");
+            ModelState.Remove("NewPassword");
+            ModelState.Remove("UserName");
+            ModelState.Remove("FirstName");
+            ModelState.Remove("LastName");
+            ModelState.Remove("Token");
+            if (!ModelState.IsValid) {
+
+                return View(model);
+            }
+            var user = await _userManager.FindByEmailAsync(model.Email);
+
+            if (user != null)
+            {
+                var result = await _signInManager.PasswordSignInAsync(user.UserName,model.Password, false, false);
+                 if (result.Succeeded)
+                 {
+
+                    if (!string.IsNullOrEmpty(returnUrl))
+                        return LocalRedirect(returnUrl);
+                    if (await _userManager.IsInRoleAsync(user, "Admin"))
+                        return RedirectToAction("Dashboard", "Courses");
+
+                    return RedirectToAction("Index", "Courses");
+                    }
+                    if (!user.EmailConfirmed)
+                    {
+                        ModelState.AddModelError(string.Empty, "You must have a confirmed email.");
+                        return View(model);
+                    }
+                    ModelState.AddModelError("", "Invalid Login Attempt"); 
+                return View();
+            }
+            ModelState.AddModelError(string.Empty, "The Email or Password is incorrect.");
+            
+           return View(model);
+        }
+
+
+        [Authorize(Policy = "AdminOnly")]
+        public async Task<IActionResult> ManageUsers()
+        {
+            var currentUserId = _userManager.GetUserId(User);
+
+            var users = await _userManager.Users
+                .Where(u => u.Id != currentUserId)   // logged in admin remove
+                .ToListAsync();
+
+            var userList = new List<RegisterViewModel>();
+
+            foreach (var user in users)
+            {
+                var roles = await _userManager.GetRolesAsync(user);
+
+                userList.Add(new RegisterViewModel
+                {
+                    UserId = user.Id,
+                    Email = user.Email,
+                    IsAdmin = await _userManager.IsInRoleAsync(user, "Admin")
+                });
+            }
+
+            return View(userList);
+        }
+
+
+
+
+        //----------------------------
+        [Authorize(Policy = "AdminOnly")]
+        public async Task<IActionResult> ViewUserProfile(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return NotFound();
+
+            var model = new RegisterViewModel
+            {
+                UserId = user.Id,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Email = user.Email,
+                UserName = user.UserName,
+                ProfileImage = user.ProfileImage
+            };
+            return PartialView("_ViewProfilePartial", model);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ViewUserProfile(RegisterViewModel model)
+        {
+            ModelState.Remove("Token");
+            ModelState.Remove("ConfirmPassword");
+            ModelState.Remove("Password");
+            ModelState.Remove("NewPassword");
+            if (!ModelState.IsValid) return PartialView("_ViewProfilePartial", model);
+
+            var user = await _userManager.FindByIdAsync(model.UserId);
+            if (user == null) return NotFound();
+
+            // Update Basic Info
+            user.FirstName = model.FirstName;
+            user.LastName = model.LastName;
+            user.Email = model.Email;
+
+            // Handle Profile Image Upload
+            if (model.ImageFile != null)
+            {
+                string fileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(model.ImageFile.FileName);
+                string path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", fileName);
+                using (var stream = new FileStream(path, FileMode.Create))
+                {
+                    await model.ImageFile.CopyToAsync(stream);
+                }
+                user.ProfileImage = "images/" + fileName;
+            }
+
+            // Handle Password Reset (Admins don't need the old password)
+            if (!string.IsNullOrWhiteSpace(model.NewPassword))
+            {
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                var result = await _userManager.ResetPasswordAsync(user, token, model.NewPassword);
+
+                if (!result.Succeeded)
+                {
+                    foreach (var error in result.Errors) ModelState.AddModelError("", error.Description);
+                    return PartialView("_ViewProfilePartial",model);
+                }
+            }
+
+            var updateResult = await _userManager.UpdateAsync(user);
+            if (updateResult.Succeeded)
+            {
+                TempData["Success"] = "User profile updated successfully!";
+                return RedirectToAction("ManageUsers"); // Or your user list action
+            }
+
+            return PartialView("_ViewProfilePartial",model);
+        }
+        //----------------------------
+
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        public async Task<IActionResult> ToggleAdmin(string userId, bool makeAdmin)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return NotFound();
+
+            var currentUserId = _userManager.GetUserId(User);
+
+            // Prevent admin from removing themselves
+            if (userId == currentUserId && !makeAdmin)
+            {
+                TempData["ErrorMessage"] = "You cannot revoke your own admin role.";
+                return RedirectToAction("ManageUsers");
+            }
+
+            if (makeAdmin)
+            {
+                if (!await _userManager.IsInRoleAsync(user, "Admin"))
+                {
+                    await _userManager.AddToRoleAsync(user, "Admin");
+                }
+
+                _logger.LogInformation("Admin {AdminUser} promoted user {TargetUser} to Admin role.",
+                    User.Identity.Name, user.UserName);
+            }
+            else
+            {
+                if (await _userManager.IsInRoleAsync(user, "Admin"))
+                {
+                    await _userManager.RemoveFromRoleAsync(user, "Admin");
+                }
+
+                _logger.LogInformation("Admin {AdminUser} revoked Admin role from user {TargetUser}.",
+                    User.Identity.Name, user.UserName);
+            }
+
+            return RedirectToAction("ManageUsers");
+        }
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> Profile( )
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+            {
+                return RedirectToAction("Login");
+            }
+            if (!User.IsInRole("Admin"))
+            {
+                var departmentName = await _context.Student
+                    .Where(s => s.UserId == user.Id)
+                    .Select(s => s.Department.DepartmentName)
+                    .FirstOrDefaultAsync();
+
+                ViewBag.DepartmentName = departmentName ?? "No Department Assigned";
+            }
+            var model = new RegisterViewModel
+            {
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                UserName = user.UserName,
+                Email = user.Email,
+                ProfileImage = user.ProfileImage
+                
+            };
+
+            return View(model);
+        }
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> Profile(RegisterViewModel model)
+        {
+            ModelState.Remove("Token");
+            ModelState.Remove("ConfirmPassword");
+            ModelState.Remove("NewPassword");
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+            var user = await _userManager.GetUserAsync(User);
+            
+            if (user == null)
+                return RedirectToAction("Login");
+
+            
+            user.FirstName = model.FirstName;
+            user.LastName = model.LastName;
+            user.UserName = model.UserName;
+            user.Email = model.Email;
+
+            //if (model.ImageFile != null)
+            //{
+            //    var fileName = Guid.NewGuid() + Path.GetExtension(model.ImageFile.FileName);
+            //    var path = Path.Combine(Directory.GetCurrentDirectory(),
+            //                            "wwwroot",
+            //                            fileName);
+
+            //    using var stream = new FileStream(path, FileMode.Create);
+            //    await model.ImageFile.CopyToAsync(stream);
+
+            //    user.ProfileImage = fileName;
+            //}
+            if (model.ImageFile != null)
+            {
+                string fileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(model.ImageFile.FileName);
+                string path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/images", fileName);
+                using (var stream = new FileStream(path, FileMode.Create))
+                {
+                    await model.ImageFile.CopyToAsync(stream);
+                }
+                user.ProfileImage = "images/" + fileName;
+            }
+
+            await _userManager.UpdateAsync(user);
+            if (model.Password != null)
+            {
+                bool isPasswordCorrect = await _userManager.CheckPasswordAsync(user, model.Password);
+                if (isPasswordCorrect)
+                {
+                    if (!string.IsNullOrWhiteSpace(model.NewPassword))
+                    {
+
+                        var result = await _userManager.ChangePasswordAsync(
+                        user,
+                        model.Password,        // old password input 
+                        model.NewPassword // new password
+                    );
+                    if (result.Succeeded)
+                    {
+                        await _signInManager.RefreshSignInAsync(user);
+                    }
+                    }
+
+                }
+                if (!isPasswordCorrect)
+                {
+                    TempData["Success"] = "Current Password is incorrect!!!";
+                    return RedirectToAction("Profile");
+                }
+            TempData["Success"] = "Profile updated successfully!";
+            return RedirectToAction("Profile");
+            }
+            TempData["Success"] = "Current Password is required!";
+            return RedirectToAction("Profile");
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> RegisteredEmail()
+        { 
+            return  View();
+        }
+        [HttpPost]
+        public async Task<IActionResult> RegisteredEmail(RegisterViewModel model)
+        {
+            ModelState.Remove("UserName");
+            ModelState.Remove("Password");
+            ModelState.Remove("ConfirmPassword");
+            ModelState.Remove("NewPassword");
+            ModelState.Remove("FirstName");
+            ModelState.Remove("LastName");
+            ModelState.Remove("Token");
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var user = await _userManager.FindByEmailAsync(model.Email);
+
+            if (user == null)
+            {
+                TempData["NoData"] = "User Not Found";
+                return View(model);
+            }
+            if (user !=null && !user.EmailConfirmed)
+            {
+                ModelState.AddModelError("", "You must have a confirmed email.");
+                var triggerUrl = Url.Action(
+                    "SendConfirmationAndRedirect",
+                    "Account",
+                    new { email = user.Email }
+                    );
+
+                // Corrected string interpolation ($) to insert the URL
+                TempData["ResetPassword"] = $"To Confirm Your Email Now!!! <a href='{triggerUrl}'>Click here</a>";
+
+                return View();
+            }
+
+            // 4️⃣ Email ownership confirm (TOKEN)
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var encodedToken = WebUtility.UrlEncode(token);
+
+            var resetLink = Url.Action(
+                "ResetPassword",
+                "Account",
+                new { email = user.Email, token = encodedToken },
+                Request.Scheme
+            );
+
+            await _emailSender.SendEmailAsync(
+                user.Email,
+                "Reset your password",
+                $"Click to reset password: <a href='{resetLink}'>Reset</a>"
+            );
+            TempData["ConfirmToResetPassword"] = "Check Your Email to Reset Passsword";
+            return View(model);
+        }
+        [HttpGet]
+        
+        public IActionResult ResetPassword(string email, string token)
+        {
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(token))
+            {
+                ModelState.AddModelError("", "Invalid Credential");
+                return View();
+            }
+                return View(new RegisterViewModel
+                {
+                    Email = email,
+                    Token = token
+                });
+            }
+
+
+        [HttpPost]
+        public async Task<IActionResult> ResetPassword(RegisterViewModel model)
+        {
+            ModelState.Remove("UserName");
+            ModelState.Remove("FirstName");
+            ModelState.Remove("LastName");
+            ModelState.Remove("Password");
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+                return RedirectToAction("Login");
+
+            var decodedToken = WebUtility.UrlDecode(model.Token);
+
+            var result = await _userManager.ResetPasswordAsync(
+                user,
+                decodedToken,
+                model.NewPassword
+            );
+            if (!result.Succeeded)
+            {
+
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError("", error.Description);
+                }
+                return View(model);
+
+            }
+            if (result.Succeeded)
+            {
+                TempData["ConfirmedResetPassword"] = " Your Passsword is Updated!!";
+                return RedirectToAction(nameof(Login));
+            }
+            return View(model);
+        }
+        //Google Login Wala Yahan sa la kar
+
+        [HttpPost]
+        [AllowAnonymous]
+        public IActionResult ExternalLogin(string provider, string? returnUrl = null,string source = null)
+        {
+            var redirectUrl = Url.Action("ExternalLoginCallback", "Account", new { ReturnUrl = returnUrl,source});
+            var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
+            return Challenge(properties, provider);
+        }
+
+        [AllowAnonymous]
+        public async Task<IActionResult> ExternalLoginCallback(string? returnUrl = null, string? remoteError = null,string source = null)
+        {
+            if (remoteError != null)
+            {
+                ModelState.AddModelError(string.Empty, $"Error from external provider: {remoteError}");
+                return View("Login");
+            }
+
+            var info = await _signInManager.GetExternalLoginInfoAsync();
+            if (info == null)
+                return RedirectToAction(nameof(Login));
+            
+              var  firstName = info.Principal.FindFirstValue(ClaimTypes.GivenName);
+              var  lastName = info.Principal.FindFirstValue(ClaimTypes.Surname);
+            
+            // Sign in user if already linked
+            var result = await _signInManager.ExternalLoginSignInAsync(
+                info.LoginProvider,
+                info.ProviderKey,
+                isPersistent: false
+                );
+            if (!result.Succeeded)
+            {
+                // Create user if not exists
+                var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+                if (email != null)
+                {
+                    var user = await _userManager.FindByEmailAsync(email);
+                    if (source == "Login")
+                    {
+                        if (user == null)
+                        {
+                            //user = new ApplicationUser
+                            //{
+                            //    UserName = email,
+                            //    Email = email,
+                            //    EmailConfirmed = true
+                            //};
+                            //var createResult = await _userManager.CreateAsync(user);
+                            //if (!createResult.Succeeded)
+                            //    return RedirectToAction("Login");
+                            TempData["RegisterFirst"] = "Account Not Found Please Register First.";
+                            return RedirectToAction("Register");
+                        }
+
+                        var addLoginResult = await _userManager.AddLoginAsync(user, info);
+
+                        await _signInManager.SignInAsync(user, isPersistent: false);
+                        return RedirectToAction("Index", "Students");
+                    }
+                    if ( source == "Register")
+                    {
+                        if (user != null)
+                        {
+                            var addLoginResult = await _userManager.AddLoginAsync(user, info);
+                            if (addLoginResult.Succeeded)
+                            {
+                            TempData["RegisterSuccess"] = "Registration Successful please login";
+                            return RedirectToAction("Login", "Account");
+                            }
+                        }
+                        user = new ApplicationUser
+                        {
+                            
+                            UserName = email.Substring(0,email.IndexOf("@")),
+                            Email = email,
+                            EmailConfirmed = true
+                        };
+                        user.FirstName = firstName;
+                        user.LastName = lastName;
+                        var createResult = await _userManager.CreateAsync(user);
+                        if (!createResult.Succeeded)
+                            return RedirectToAction("Register");
+
+                        var addLoginResult1 = await _userManager.AddLoginAsync(user, info);
+                        TempData["RegisterSuccess"] = "Registration Successful please login";
+                        return RedirectToAction("Login", "Account");
+                    }
+                }
+            }
+            if (result.Succeeded) { 
+                 var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+                 if (email != null)
+                 {
+                     var user = await _userManager.FindByEmailAsync(email);
+                     if (source == "Login")
+                     {
+                        //var addLoginResult = await _userManager.AddLoginAsync(user, info);
+                        //if (!addLoginResult.Succeeded)
+                        //{
+                        //    TempData["UserNotLinked"] = "Access denied!!!";
+                        //    return RedirectToAction("Login");
+                        //}
+                        //await _signInManager.SignInAsync(user, isPersistent: false);
+                         return RedirectToAction("Index", "Students");
+
+                     }
+                     if (source == "Register")
+                     {
+                         if (user != null)
+                         {
+                            await _signInManager.SignOutAsync();
+                             TempData["Error"] = "Account already exists.";
+                             return RedirectToAction("Register");
+                         }
+                     }
+                 }
+            }
+                    ModelState.AddModelError("", "Email not found");
+            return View("Login");
+        }
+
+
+        //Goolgle Login Wala Yahan tak
+        public async Task<IActionResult> Logout()
+        {
+            await _signInManager.SignOutAsync();
+            TempData["Logout"] = "You have been LoggedOut!!!";
+            return RedirectToAction("Login");
+        }
+
+        public async Task<IActionResult> SendConfirmationAndRedirect(string email)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+            var confirmationLink = Url.Action(
+                nameof(ConfirmEmail),
+                "Account",
+                new { token, email = user.Email },
+                Request.Scheme
+                );
+
+            await _emailSender.SendEmailAsync(
+                email,
+                "Confirmation Link",
+                $" To Confirm Email: <a  href='{confirmationLink}'>Click here</a>"
+                );
+
+            // After sending, take them to a "Check your email" page or Home
+                TempData["AResetPassword"] = $"Please Check Your Email";
+            return RedirectToAction("RegisteredEmail");
+        }
+
+       
+    }
+}

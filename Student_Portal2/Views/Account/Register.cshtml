@@ -1,0 +1,153 @@
+﻿@model Student_Portal2.Models.RegisterViewModel;
+@{
+    ViewData["Title"] = "Register";
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-success" id="msg">
+        @TempData["Error"]
+    </div>
+}
+@if (TempData["RegisterFirst"] != null)
+{
+    <div class="alert alert-success" id="msg">
+        @TempData["RegisterFirst"]
+    </div>
+}
+
+<div class="d-flex justify-content-center">
+    <div class="card bg-secondary shadow border-0 mx-auto" style="max-width: 520px;">
+
+        <!-- Card Header -->
+        <div class="card-header bg-gradient pb-2">
+            <div class="text-center text-white mb-3 login-header h4">
+                Register
+            </div>
+        </div>
+
+        <!-- Card Body -->
+        <div class="card-body px-lg-4 py-lg-3 bg-light">
+            <div class="text-center text-black mb-3">
+                <p>Create your account</p>
+            </div>
+
+            <form method="post" class="needs-validation" novalidate>
+
+                <!-- First & Last Name -->
+                <div class="row mb-3">
+                    <div class="col">
+                    <label for="inputFirstName">FirstName</label>
+                        <input type="text"
+                               name="FirstName"
+                               class="form-control"
+                               id="inputFirstName"
+                               placeholder="First Name"
+                               required />
+                        <span asp-validation-for="FirstName" class="text-danger"></span>
+                    </div>
+
+                    <div class="col">
+                    <label for="inputLastName">LastName</label>
+                        <input type="text"
+                               name="LastName"
+                               class="form-control"
+                               id="inputLastName"
+                               placeholder="Last Name"
+                               required />
+                        <span asp-validation-for="LastName" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <!-- Username -->
+                <div class="row mb-3">
+                    <div class="col">
+                    <label for="inputUserName">UserName</label>
+                    <input type="text"
+                           name="UserName"
+                           class="form-control mx-auto"
+                               id="inputUserName"
+                           placeholder="Username"
+                           style="max-width: 380px;"
+                           required />
+                    <span asp-validation-for="UserName" class="text-danger"></span>
+                </div>
+
+                <!-- Email -->
+                    
+                        <div class="col">
+                    <label for="inputEmail">Email</label>
+                    <input type="email"
+                           name="Email"
+                           class="form-control mx-auto"
+                           id="inputEmail"
+                           placeholder="Email"
+                           style="max-width: 380px;"
+                           required />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+                </div>
+
+                <!-- Password -->
+                <div class="row mb-3">
+                    <div class="col">
+                    <label for="inputPassword">Password</label>
+                    <input type="password"
+                           asp-for="NewPassword"
+                           class="form-control mx-auto"
+                           id="inputPassword"
+                           placeholder="Password"
+                           style="max-width: 380px;"
+                           required />
+                    <span asp-validation-for="NewPassword" class="text-danger"></span>
+                </div>
+
+                <!-- Confirm Password -->
+                    <div class="col">
+                    <label for="inputConfirmPassword">Confirm Password</label>
+                    <input type="password"
+                           id="inputConfirmPassword"
+                           name="ConfirmPassword"
+                           class="form-control mx-auto"
+                           placeholder="Confirm Password"
+                           style="max-width: 380px;"
+                           required />
+                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                </div>
+                </div>
+
+                <div asp-validation-summary="ModelOnly" class="text-danger text-center mb-2"></div>
+
+                <!-- Register Button -->
+                <div class="text-center">
+                    <button type="submit"
+                            class="btn btn-primary w-100"
+                            style="max-width: 380px;">
+                        Register
+                    </button>
+                </div>
+
+            </form>
+            <hr />
+            <p class="text-center">Or Register with:</p>
+            <form asp-controller="Account" asp-action="ExternalLogin" method="post">
+                <input type="hidden" name="source" value="Register" />
+
+                <button type="submit" name="provider" value="Google" class="btn btn-outline-primary w-100 mb-2">
+                    Google
+                </button>
+                <button type="submit" name="provider" value="GitHub" class="btn btn-outline-secondary w-100 mb-2">
+                    Github
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+@* @section Scripts {
+    <!-- **CRITICAL STEP:** Load the validation scripts using the partial view -->
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+} *@

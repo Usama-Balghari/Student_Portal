@@ -1,0 +1,157 @@
+﻿@model IEnumerable<Student_Portal2.Models.Department>
+@{
+    ViewData["Title"] = "Departments";
+}
+
+
+
+@* {{-- Success Alert --}} *@
+<div id="success-alert"
+     class="alert alert-dismissible fade show mb-3"
+     style="display:none;">
+    <span id="success"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+
+@if (TempData["success"] != null)
+{
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            let alertBox = document.getElementById("success-alert");
+            let msg = document.getElementById("success");
+            msg.innerText = "@TempData["success"]";
+            alertBox.style.display = "block";
+            setTimeout(() => { alertBox.style.display = "none"; }, 3000);
+        });
+    </script>
+}
+
+@* {{-- Page Header --}} *@
+<div class="dept-page-header">
+    <p class="dept-page-eyebrow">Administration</p>
+    <h1 class="dept-page-title">Departments</h1>
+</div>
+
+@* {{-- Create New button (Admin only) --}} *@
+@if (User.IsInRole("Admin"))
+{
+    <div class="mb-3">
+        <button class="btn btn-create-new"
+                data-bs-toggle="modal" data-bs-target="#createDeptModal">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
+            </svg>
+            Create New
+        </button>
+    </div>
+}
+
+@* {{-- Departments Table --}} *@
+<div class="card dept-table-card">
+    <div class="card-body p-0">
+        <table id="tblDepartments" class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>Department Name</th>
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <th style="width:160px;">Actions</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr id="row-@item.Id">
+                      
+                        <td>
+                            <div class="dept-name-cell">
+                                <div class="dept-name-avatar">
+                                    @item.DepartmentName.Substring(0, 1).ToUpper()
+                                </div>
+                                <span class="dept-name-text">@item.DepartmentName</span>
+                            </div>
+                        </td>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <button class="btn btn-tbl-edit edit-dept-btn" data-id="@item.Id">
+                                        Edit
+                                    </button>
+                                    <button class="btn btn-tbl-delete delete-dept-btn" data-id="@item.Id">
+                                        Delete
+                                    </button>
+                                </div>
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@* {{-- Create Department Modal --}} *@
+<div class="modal fade sp-modal" id="createDeptModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="sp-modal-header">
+                <div class="d-flex align-items-center" style="position:relative;z-index:1;">
+                    <div class="sp-modal-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="white" viewBox="0 0 16 16">
+                            <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z" />
+                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h5 class="sp-modal-title">Create Department</h5>
+                        <p class="sp-modal-sub">Add a new department to the portal</p>
+                    </div>
+                </div>
+                <button type="button" class="sp-modal-close" data-bs-dismiss="modal">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" viewBox="0 0 16 16">
+                        <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
+                    </svg>
+                </button>
+            </div>
+            <div class="sp-modal-body">
+                @await Html.PartialAsync("_CreateDeptPartial", new Student_Portal2.Models.Department())
+            </div>
+        </div>
+    </div>
+</div>
+
+@* {{-- Edit Department Modal --}} *@
+<div class="modal fade sp-modal" id="EditDeptModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="sp-modal-header">
+                <div class="d-flex align-items-center" style="position:relative;z-index:1;">
+                    <div class="sp-modal-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="white" viewBox="0 0 16 16">
+                            <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h5 class="sp-modal-title">Edit Department</h5>
+                        <p class="sp-modal-sub">Update department information</p>
+                    </div>
+                </div>
+                <button type="button" class="sp-modal-close" data-bs-dismiss="modal">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="white" viewBox="0 0 16 16">
+                        <path d="M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z" />
+                    </svg>
+                </button>
+            </div>
+            <div class="sp-modal-body" id="editModalContent">
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

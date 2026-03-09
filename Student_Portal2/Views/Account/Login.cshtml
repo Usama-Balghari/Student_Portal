@@ -1,0 +1,141 @@
+﻿@model Student_Portal2.Models.RegisterViewModel;
+@{
+    ViewData["Title"] = "Login";
+}
+
+
+
+<div class="login-page">
+
+    <div class="login-alerts w-100 mb-3" style="max-width:420px;">
+        @if (ViewBag.Message != null)
+        {
+            <div class="alert alert-warning" id="msg">@ViewBag.Message</div>
+        }
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success" id="msg">@TempData["SuccessMessage"]</div>
+        }
+        @if (TempData["Logout"] != null)
+        {
+            <div class="alert alert-success" id="msg">@TempData["Logout"]</div>
+        }
+        @if (TempData["SuccessRegistration"] != null)
+        {
+            <div class="alert alert-success" id="msg">@TempData["SuccessRegistration"]</div>
+        }
+        @if (TempData["ConfirmEmail"] != null)
+        {
+            <div class="alert alert-success" id="msg">@TempData["ConfirmEmail"]</div>
+        }
+        @if (TempData["ConfirmedResetPassword"] != null)
+        {
+            <div class="alert alert-success" id="msg">@TempData["ConfirmedResetPassword"]</div>
+        }
+        @if (TempData["AlreadyhaveAccount"] != null)
+        {
+            <div class="alert alert-success" id="msg">@TempData["AlreadyhaveAccount"]</div>
+        }
+        @if (TempData["RegisterSuccess"] != null)
+        {
+            <div class="alert alert-success" id="msg">@TempData["RegisterSuccess"]</div>
+        }
+        @if (TempData["UserNotLinked"] != null)
+        {
+            <div class="alert alert-success" id="msg">@TempData["UserNotLinked"]</div>
+        }
+    </div>
+
+    <div class="card login-card">
+
+     
+        <div class="login-hero">
+            <div class="login-hero-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="white" viewBox="0 0 16 16">
+                    <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.029 10 8 10c-2.029 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10z" />
+                </svg>
+            </div>
+            <p class="login-hero-eyebrow">Student Portal</p>
+            <h1 class="login-hero-title">Welcome Back</h1>
+            <p class="login-hero-sub">Enter your credentials to continue</p>
+        </div>
+
+        <div class="login-body">
+
+            <form method="post" id="loginForm" class="needs-validation" novalidate>
+
+  
+                <div class="mb-3">
+                    <label class="form-label login-label">Email Address</label>
+                    <input type="email"
+                           asp-for="Email"
+                           class="form-control login-input"
+                           placeholder="you@example.com"
+                           required />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-2">
+                    <label class="form-label login-label">Password</label>
+                    <input type="password"
+                           asp-for="Password"
+                           class="form-control login-input"
+                           placeholder="••••••••"
+                           required />
+                    <span asp-validation-for="Password" class="text-danger small"></span>
+                </div>
+
+      
+                <div class="text-end mb-3">
+                    <a asp-action="RegisteredEmail" class="login-forgot">Forgot password?</a>
+                </div>
+
+   
+                <div asp-validation-summary="ModelOnly" class="text-danger small mb-3 text-center"></div>
+
+                <button type="submit" class="btn login-btn-signin w-100 mb-3">
+                    Sign In
+                </button>
+
+                <p class="text-center login-register-row mb-0">
+                    Don't have an account?
+                    <a href="/Account/Register/">Register now</a>
+                </p>
+
+            </form>
+
+            <div class="login-divider">
+                <span class="login-divider-line"></span>
+                <span class="login-divider-text">Or continue with</span>
+                <span class="login-divider-line"></span>
+            </div>
+
+
+            <form asp-controller="Account" asp-action="ExternalLogin" method="post">
+                <input type="hidden" name="source" value="Login" />
+                <div class="row g-2">
+                    <div class="col-6">
+                        <button type="submit" name="provider" value="Google"
+                                class="btn btn-outline-primary login-btn-social login-btn-google w-100">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 48 48">
+                                <path fill="#4285F4" d="M44.5 20H24v8.5h11.7C34.1 33.9 29.6 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 5.1 29.6 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21c10.5 0 20-7.7 20-21 0-1.3-.2-2.7-.5-4z" />
+                            </svg>
+                            Google
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button type="submit" name="provider" value="GitHub"
+                                class="btn btn-outline-secondary login-btn-social login-btn-github w-100">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
+                            </svg>
+                            GitHub
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+</div>
