@@ -21,7 +21,7 @@ namespace Student_Portal2.Controllers
         [Authorize(Roles ="Admin")]
         public async Task<IActionResult> Index()
         {
-            var dept = await _context.Departments.ToListAsync();
+            var dept = await _context.Departments.Where(x => !x.IsDeleted).ToListAsync();
             return View(dept);
         }
 
@@ -208,11 +208,13 @@ namespace Student_Portal2.Controllers
                 });
             }
 
-            // With DeleteBehavior.SetNull, students' DepartmentId will be set to NULL automatically
-            _context.Departments.Remove(department);
+            department.IsDeleted = true;
+            department.DeletedAt = DateTime.Now;
+
+            _context.Departments.Update(department);
             await _context.SaveChangesAsync();
 
-            return Json(new { success = true, message = "Department has been deleted successfully." });
+            return Json(new { success = true, message = "Department moved to recycle bin." });
 
         }
 

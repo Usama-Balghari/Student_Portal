@@ -13,11 +13,14 @@ namespace Student_Portal2.Controllers
     public class CoursesController : Controller
     {
         private readonly ApplicationDBContext _context;
+        private readonly ILogger<CoursesController> _logger;
 
-        public CoursesController(ApplicationDBContext context)
+        public CoursesController(ApplicationDBContext context, ILogger<CoursesController> logger)
         {
             _context = context;
+            _logger = logger;
         }
+
         [Authorize]
         public async Task<IActionResult> Index()
         {
@@ -26,7 +29,7 @@ namespace Student_Portal2.Controllers
 
             if (isAdmin)
             {
-                var courses = await _context.Courses.ToListAsync();
+                var courses = await _context.Courses.Where(x => !x.IsDeleted).ToListAsync();
                 return View(courses);
             }
             else
@@ -55,31 +58,44 @@ namespace Student_Portal2.Controllers
             }
         }
 
-
         [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Create(Course course)
         {
-            if (ModelState.IsValid)
+            try
             {
-                // Check if the course already exists (e.g., by Name)
-                bool exists = await _context.Courses.AnyAsync(c => c.CourseName == course.CourseName);
+                if (ModelState.IsValid)
+                {
+                    bool exists = await _context.Courses
+                        .AnyAsync(c => c.CourseName == course.CourseName);
 
-                if (exists)
-                {
-                    TempData["success"] = "Failed to Create Course";
-                    return RedirectToAction(nameof(Index));
-                }
-                else
-                {
+                    if (exists)
+                    {
+                        _logger.LogWarning("Attempt to create duplicate course {CourseName}", course.CourseName);
+
+                        TempData["success"] = "Failed to Create Course";
+                        return RedirectToAction(nameof(Index));
+                    }
+
                     _context.Add(course);
                     await _context.SaveChangesAsync();
+
+                    _logger.LogInformation("Course created: {CourseName}", course.CourseName);
+
                     TempData["success"] = "Course has been created successfully.";
                     return RedirectToAction(nameof(Index));
                 }
+
+                return PartialView("_CreateCoursePartial", course);
             }
-            // Returns the partial view with validation errors if the check fails
-            return PartialView("_CreateCoursePartial", course);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error while creating course");
+
+                TempData["error"] = "Something went wrong.";
+                return RedirectToAction(nameof(Index));
+            }
         }
+
 
         // GET: Courses/Edit/5
         [Authorize(Policy = "AdminOnly")]
@@ -103,21 +119,32 @@ namespace Student_Portal2.Controllers
         [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Edit(int id, Course course)
         {
-            if (id != course.Id)
+            try
             {
-                return NotFound();
-            }
+                if (id != course.Id)
+                {
+                    _logger.LogWarning("Course edit failed. Id mismatch {Id}", id);
+                    return NotFound();
+                }
 
-            if (ModelState.IsValid)
-            {
+                if (ModelState.IsValid)
                 {
                     _context.Update(course);
                     await _context.SaveChangesAsync();
+
+                    _logger.LogInformation("Course updated: {CourseId}", course.Id);
+
                     TempData["success"] = "Course has been updated successfully.";
+                    return RedirectToAction(nameof(Index));
                 }
-            return RedirectToAction(nameof(Index));
+
+                return PartialView("_EditCoursePartial", course);
             }
-            return PartialView("_EditCoursePartial", course);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating course {CourseId}", id);
+                throw;
+            }
         }
 
 
@@ -125,72 +152,95 @@ namespace Student_Portal2.Controllers
         [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> DeleteCourse(int id)
         {
-            var course = await _context.Courses
-                .Include(d => d.Students)
-                .FirstOrDefaultAsync(d => d.Id == id);
+            try
+            {
+                var course = await _context.Courses
+                    .Include(d => d.Students)
+                    .FirstOrDefaultAsync(d => d.Id == id);
 
-            if (course == null)
-            {
-                return NotFound();
-            }
-            if (course.Students.Any())
-            {
-                return Json(new
+                if (course == null)
                 {
-                    success = false,
-                    message = $"Cannot delete. There are {course.Students.Count} students in this courses."
-                });
-            }
+                    _logger.LogWarning("Delete attempt for non-existing course {CourseId}", id);
+                    return NotFound();
+                }
 
-            _context.Courses.Remove(course);
-            await _context.SaveChangesAsync();
-            return Json(new { success = true, message = "One record has been deleted." });
+                if (course.Students.Any())
+                {
+                    _logger.LogWarning("Delete blocked. Course {CourseId} has {StudentCount} students",
+                        id, course.Students.Count);
+
+                    return Json(new
+                    {
+                        success = false,
+                        message = $"Cannot delete. There are {course.Students.Count} students in this course."
+                    });
+                }
+
+                course.IsDeleted = true;
+                course.DeletedAt = DateTime.Now;
+
+                _context.Courses.Update(course);
+                await _context.SaveChangesAsync();
+
+                return Json(new { success = true, message = "Course moved to recycle bin." });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting course {CourseId}", id);
+                return Json(new { success = false });
+            }
         }
 
 
 
-      
+
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> Enroll(List<int> courseId) // Renamed to courseIds in logic for clarity, but keeping your parameter name
+        public async Task<IActionResult> Enroll(List<int> courseId)
         {
-            // 1. Safety Check: Ensure the user isn't an Admin
-            if (User.IsInRole("Admin"))
-                return Forbid();
-
-            if (courseId == null || !courseId.Any())
-                return RedirectToAction("Index");
-
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            // 2. Load student and their current courses
-            var student = await _context.Student
-                .Include(s => s.Courses)
-                .FirstOrDefaultAsync(s => s.UserId == userId);
-
-            if (student == null) return NotFound();
-            //student.Courses.Clear();
-            // 3. Fetch all courses matching the IDs provided in the list
-            var selectedCourses = await _context.Courses
-                .Where(c => courseId.Contains(c.Id))
-                .ToListAsync();
-
-            // 4. Loop through selected courses and add new ones
-            foreach (var course in selectedCourses)
+            try
             {
-                // Only add if the student isn't already enrolled in this specific course
-                if (!student.Courses.Any(c => c.Id == course.Id))
+                if (User.IsInRole("Admin"))
+                    return Forbid();
+
+                if (courseId == null || !courseId.Any())
+                    return RedirectToAction("Index");
+
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                var student = await _context.Student
+                    .Include(s => s.Courses)
+                    .FirstOrDefaultAsync(s => s.UserId == userId);
+
+                if (student == null)
+                    return NotFound();
+
+                var selectedCourses = await _context.Courses
+                    .Where(c => courseId.Contains(c.Id))
+                    .ToListAsync();
+
+                foreach (var course in selectedCourses)
                 {
-                    student.Courses.Add(course);
+                    if (!student.Courses.Any(c => c.Id == course.Id))
+                    {
+                        student.Courses.Add(course);
+                    }
                 }
+
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Student {StudentId} enrolled in courses {@CourseIds}",
+                    student.Id, courseId);
+
+                return RedirectToAction("Index");
             }
-
-            // 5. Save all changes to the join table at once
-            await _context.SaveChangesAsync();
-
-            // 6. Redirect back to the Students Index
-            return RedirectToAction("Index");
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error enrolling student");
+                throw;
+            }
         }
+
 
 
         [Authorize(Roles = "Admin")]
@@ -235,7 +285,14 @@ namespace Student_Portal2.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> AddStudentsToCourse(int courseId, List<int> studentIds)
         {
-            var course = await _context.Courses
+            if (studentIds == null || !studentIds.Any())
+            {
+                TempData["Warn"] = "Select atleast one Student!!!";
+                return RedirectToAction("Dashboard"); 
+            }
+            try
+            {
+                var course = await _context.Courses
                 .Include(c => c.Students)
                 .FirstOrDefaultAsync(c => c.Id == courseId);
 
@@ -256,31 +313,66 @@ namespace Student_Portal2.Controllers
 
             await _context.SaveChangesAsync();
 
+            _logger.LogInformation("Successfully added {Count} students to Course ID: {CourseId}", students.Count, courseId);
+            TempData["Success"] = $"{students.Count} students added successfully.";
+
             return RedirectToAction("Dashboard");
         }
+         catch (Exception ex)
+         {
+             _logger.LogError(ex, "Unexpected error in AddStudentsToCourse for Course {CourseId}", courseId);
+             TempData["Error"] = "An unexpected error occurred.";
+         }
 
+            return RedirectToAction("Dashboard");
+        }
         [HttpPost]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> RemoveStudentFromCourse(int courseId, int studentId)
         {
-            var course = await _context.Courses
-                .Include(c => c.Students)
-                .FirstOrDefaultAsync(c => c.Id == courseId);
+            try
+            {
+                var course = await _context.Courses
+                    .Include(c => c.Students)
+                    .FirstOrDefaultAsync(c => c.Id == courseId);
 
-            if (course == null)
+                if (course == null)
+                {
+                    _logger.LogWarning("Course not found while removing student {CourseId}", courseId);
+                    return Json(new { success = false });
+                }
+
+                var student = course.Students.FirstOrDefault(s => s.Id == studentId);
+
+                if (student == null)
+                {
+                    _logger.LogWarning("Student {StudentId} not found in course {CourseId}",
+                        studentId, courseId);
+
+                    return Json(new { success = false });
+                }
+
+                course.Students.Remove(student);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Student {StudentId} removed from course {CourseId}",
+                    studentId, courseId);
+
+                var totalStudents = await _context.Student
+                 .Where(s => s.Courses.Any())
+                 .CountAsync();
+
+                return Json(new { success = true, totalStudents = totalStudents });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error removing student {StudentId} from course {CourseId}",
+                    studentId, courseId);
+
                 return Json(new { success = false });
-
-            var student = course.Students.FirstOrDefault(s => s.Id == studentId);
-
-            if (student == null)
-                return Json(new { success = false });
-
-            course.Students.Remove(student);
-
-            await _context.SaveChangesAsync();
-
-            return Json(new { success = true });
+            }
         }
+
 
     }
 }

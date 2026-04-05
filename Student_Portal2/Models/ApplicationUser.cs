@@ -11,5 +11,7 @@ namespace Student_Portal2.Models
         public Student Student { get; set; }
         public string? Address { get; set; }
         public int? Age { get; set; }
+        public bool IsDeleted { get; set; } = false;
+        public DateTime? DeletedAt { get; set; }
     }
 }

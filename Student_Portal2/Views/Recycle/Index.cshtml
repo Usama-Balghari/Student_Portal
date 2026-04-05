@@ -1,0 +1,554 @@
+﻿@model Student_Portal2.Models.RecycleViewModel
+@{
+    ViewData["Title"] = "Recycle Bin";
+}
+
+<style>
+    :root {
+        --ink: #0d1321;
+        --indigo-deep: #1b2b5e;
+        --indigo: #2d3f8a;
+        --indigo-soft: #3d52a8;
+        --amber: #f5a623;
+        --amber-pale: #fcd97e;
+        --surface: #ffffff;
+        --surface-2: #f4f6ff;
+        --text-main: #1a1f3c;
+        --text-muted: #7a85aa;
+        --border: #dde2f3;
+        --danger: #e05252;
+        --green: #2e8b57;
+        --ff-display: 'Fraunces', Georgia, serif;
+        --ff-body: 'Outfit', sans-serif;
+    }
+
+    /* ── Page header ── */
+    .rb-page-header {
+        background: var(--indigo-deep);
+        border-radius: 18px;
+        padding: 28px 32px;
+        margin-bottom: 28px;
+        position: relative;
+        overflow: hidden;
+        font-family: var(--ff-body);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+        .rb-page-header::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+            background-size: 28px 28px;
+            pointer-events: none;
+        }
+
+        .rb-page-header::after {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            /* background: radial-gradient(circle, rgba(245,166,35,0.20) 0%, transparent 65%); */
+            pointer-events: none;
+        }
+
+    .rb-page-eyebrow {
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 2.5px;
+        text-transform: uppercase;
+        color: var(--amber);
+        margin: 0 0 4px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .rb-page-title {
+        font-family: var(--ff-display);
+        font-size: 26px;
+        color: #fff;
+        margin: 0;
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    /* ── Tabs ── */
+    .rb-tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .rb-tab-btn {
+        font-family: var(--ff-body) !important;
+        font-size: 13px !important;
+        font-weight: 500 !important;
+        color: var(--text-muted) !important;
+        background: var(--surface) !important;
+        border: 1.5px solid var(--border) !important;
+        border-radius: 999px !important;
+        padding: 8px 20px !important;
+        transition: all 0.2s ease !important;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+    }
+
+        .rb-tab-btn:hover {
+            color: var(--indigo-soft) !important;
+            border-color: var(--indigo-soft) !important;
+            background: var(--surface-2) !important;
+        }
+
+        .rb-tab-btn.active {
+            color: #fff !important;
+            background: linear-gradient(135deg, var(--indigo-deep), var(--indigo-soft)) !important;
+            border-color: transparent !important;
+            box-shadow: 0 4px 14px rgba(29,43,94,0.22) !important;
+        }
+
+    .rb-tab-count {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 20px;
+        height: 20px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 0 6px;
+        background: rgba(255,255,255,0.18);
+    }
+
+    .rb-tab-btn:not(.active) .rb-tab-count {
+        background: var(--surface-2);
+        color: var(--indigo-soft);
+    }
+
+    /* ── Table card ── */
+    .rb-table-card {
+        border: none !important;
+        border-radius: 18px !important;
+        box-shadow: 0 8px 32px rgba(13,19,33,0.08) !important;
+        overflow: hidden;
+        font-family: var(--ff-body);
+    }
+
+        .rb-table-card .table {
+            margin: 0;
+            font-size: 13.5px;
+        }
+
+            .rb-table-card .table thead th {
+                background: var(--surface-2);
+                color: var(--text-muted);
+                font-size: 10.5px;
+                font-weight: 600;
+                letter-spacing: 1.5px;
+                text-transform: uppercase;
+                border-bottom: 1.5px solid var(--border);
+                padding: 14px 20px;
+                white-space: nowrap;
+            }
+
+            .rb-table-card .table tbody td {
+                padding: 13px 20px;
+                color: var(--text-main);
+                border-color: var(--border);
+                vertical-align: middle;
+            }
+
+            .rb-table-card .table tbody tr:hover {
+                background: var(--surface-2);
+            }
+
+    /* ── Item name cell ── */
+    .rb-name-cell {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .rb-item-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        flex-shrink: 0;
+        background: linear-gradient(135deg, var(--indigo-deep), var(--indigo-soft));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--ff-display);
+        font-size: 15px;
+        color: #fff;
+        box-shadow: 0 3px 10px rgba(29,43,94,0.20);
+    }
+
+        .rb-item-avatar.round {
+            border-radius: 50%;
+        }
+
+    .rb-item-name {
+        font-weight: 500;
+        font-size: 13.5px;
+        color: var(--text-main);
+    }
+
+    .rb-item-email {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 1px;
+    }
+
+    /* ── Restore button ── */
+    .btn-rb-restore {
+        font-family: var(--ff-body) !important;
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        border-radius: 999px !important;
+        padding: 5px 16px !important;
+        border: 1.5px solid #b8f0d0 !important;
+        color: #1a6640 !important;
+        background: transparent !important;
+        transition: all 0.18s ease !important;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        text-decoration: none;
+    }
+
+        .btn-rb-restore:hover {
+            background: rgba(46,139,87,0.08) !important;
+            border-color: var(--green) !important;
+            color: var(--green) !important;
+            transform: translateY(-1px);
+        }
+
+    .btn-rb-delete {
+        font-family: var(--ff-body) !important;
+        font-size: 12px !important;
+        font-weight: 600 !important;
+        border-radius: 999px !important;
+        padding: 5px 16px !important;
+        border: 1.5px solid #f5c0c0 !important;
+        color: var(--danger) !important;
+        background: transparent !important;
+        transition: all 0.18s ease !important;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        text-decoration: none;
+    }
+
+        .btn-rb-delete:hover {
+            background: rgba(224,82,82,0.06) !important;
+            border-color: var(--danger) !important;
+            color: var(--danger) !important;
+            transform: translateY(-1px);
+        }
+    /* ── Empty state ── */
+    .rb-empty {
+        text-align: center;
+        padding: 52px 24px;
+    }
+
+    .rb-empty-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: var(--surface-2);
+        border: 1.5px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 14px;
+    }
+
+    .rb-empty-text {
+        font-size: 13.5px;
+        color: var(--text-muted);
+        margin: 0;
+        font-weight: 300;
+    }
+
+    /* Tab pane */
+    .rb-tab-pane {
+        display: none;
+    }
+
+        .rb-tab-pane.active {
+            display: block;
+        }
+</style>
+
+@* {{-- Page Header --}} *@
+<div class="rb-page-header">
+    <div>
+        <p class="rb-page-eyebrow">System</p>
+        <h1 class="rb-page-title">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="rgba(255,255,255,0.6)" viewBox="0 0 16 16">
+                <path d="M11 1.5v1h3.5a.5.5 0 0 1 0 1h-.538l-.853 10.66A2 2 0 0 1 11.115 16h-6.23a2 2 0 0 1-1.994-1.84L2.038 3.5H1.5a.5.5 0 0 1 0-1H5v-1A1.5 1.5 0 0 1 6.5 0h3A1.5 1.5 0 0 1 11 1.5zm-5 0v1h4v-1a.5.5 0 0 0-.5-.5h-3a.5.5 0 0 0-.5.5z" />
+            </svg>
+            Recycle Bin
+        </h1>
+    </div>
+</div>
+
+@* {{-- Tabs --}} *@
+<div class="rb-tabs" id="rbTabs">
+    <button class="rb-tab-btn active" data-target="tab-users">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4z" />
+        </svg>
+        Users
+        <span class="rb-tab-count">@Model.AchrivedUser.Count</span>
+    </button>
+    <button class="rb-tab-btn" data-target="tab-depts">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M14.763.075A.5.5 0 0 1 15 .5v15a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5V14h-1v1.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V10a.5.5 0 0 1 .342-.474L6 7.64V4.5a.5.5 0 0 1 .276-.447l8-4a.5.5 0 0 1 .487.022z" />
+        </svg>
+        Departments
+        <span class="rb-tab-count">@Model.Departments.Count</span>
+    </button>
+    <button class="rb-tab-btn" data-target="tab-courses">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16">
+            <path d="M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811V2.828zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492V2.687zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783z" />
+        </svg>
+        Courses
+        <span class="rb-tab-count">@Model.Courses.Count</span>
+    </button>
+</div>
+
+@* {{-- Tab Content --}} *@
+<div class="card rb-table-card">
+    <div class="card-body p-0">
+
+        @* {{-- Users Tab --}} *@
+        <div class="rb-tab-pane active" id="tab-users">
+            @if (Model.AchrivedUser.Any())
+            {
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Email</th>
+                            <th style="width:120px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var user in Model.AchrivedUser)
+                        {
+                            string initial = (user.UserName ?? "?").Substring(0, 1).ToUpper();
+                            <tr>
+                                <td>
+                                    <div class="rb-name-cell">
+                                        <div class="rb-item-avatar round">@initial</div>
+                                        <div>
+                                            <div class="rb-item-name">@user.UserName</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span style="font-size:13px;color:var(--text-muted);">@user.Email</span>
+                                </td>
+                                <td>
+                                    <form asp-controller="Account" asp-action="RestoreUser" method="post" style="display:inline;">
+                                        <input type="hidden" name="archiveId" value="@user.ArchiveId"/>
+                                        <button type="submit" class="btn-rb-restore">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor" viewBox="0 0 16 16">
+                                            <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z" />
+                                            <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z" />
+                                        </svg>
+                                        Restore
+                                    </button>
+                                    </form>
+
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="rb-empty">
+                    <div class="rb-empty-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#9aa5c9" viewBox="0 0 16 16">
+                            <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4z" />
+                        </svg>
+                    </div>
+                    <p class="rb-empty-text">No deleted users in the recycle bin.</p>
+                </div>
+            }
+        </div>
+
+        @* {{-- Departments Tab --}} *@
+        <div class="rb-tab-pane" id="tab-depts">
+            @if (Model.Departments.Any())
+            {
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Department</th>
+                            <th style="width:30%;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var dept in Model.Departments)
+                        {
+                            string initial = (dept.DepartmentName ?? "?").Substring(0, 1).ToUpper();
+                            <tr id="department-row-@dept.Id">
+                                <td>
+                                    <div class="rb-name-cell">
+                                        <div class="rb-item-avatar">@initial</div>
+                                        <span class="rb-item-name">@dept.DepartmentName</span>
+                                    </div>
+                                </td>
+                                <td style="display: flex; gap: 10px;">
+                                    <button class ="btn-rb-restore" type="button" onclick="performAction('Department', 'Restore', '@dept.Id')">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor" viewBox="0 0 16 16">
+                                            <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z" />
+                                            <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z" />
+                                        </svg>
+                                        Restore
+                                        </button>
+                                    <button class="btn-rb-delete" type="button" onclick="performAction('Department', 'PermanentDelete', '@dept.Id')">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor" viewBox="0 0 16 16">
+                                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z" />
+                                            <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z" />
+                                        </svg>
+                                        Delete Permanently
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="rb-empty">
+                    <div class="rb-empty-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#9aa5c9" viewBox="0 0 16 16">
+                            <path d="M14.763.075A.5.5 0 0 1 15 .5v15a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1-.5-.5V14h-1v1.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5V10a.5.5 0 0 1 .342-.474L6 7.64V4.5a.5.5 0 0 1 .276-.447l8-4a.5.5 0 0 1 .487.022z" />
+                        </svg>
+                    </div>
+                    <p class="rb-empty-text">No deleted departments in the recycle bin.</p>
+                </div>
+            }
+        </div>
+
+        @* {{-- Courses Tab --}} *@
+        <div class="rb-tab-pane" id="tab-courses">
+            @if (Model.Courses.Any())
+            {
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Course</th>
+                            <th style="width:30%;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var course in Model.Courses)
+                        {
+                            string initial = (course.CourseName ?? "?").Substring(0, 1).ToUpper();
+                            <tr id="course-row-@course.Id">
+                                <td>
+                                    <div class="rb-name-cell">
+                                        <div class="rb-item-avatar">@initial</div>
+                                        <span class="rb-item-name">@course.CourseName</span>
+                                    </div>
+                                </td>
+                                <td style="display: flex; gap: 10px;">
+                                    <button class="btn-rb-restore" type="button" onclick="performAction('Course', 'Restore', '@course.Id')">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor" viewBox="0 0 16 16">
+                                            <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z" />
+                                            <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z" />
+                                        </svg>
+                                        Restore
+                                    </button>
+                                    <button class="btn-rb-delete" type="button" onclick="performAction('Course', 'PermanentDelete', '@course.Id')">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="currentColor" viewBox="0 0 16 16">
+                                            <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z" />
+                                            <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z" />
+                                        </svg>
+                                        Delete Permanently
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <div class="rb-empty">
+                    <div class="rb-empty-icon">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#9aa5c9" viewBox="0 0 16 16">
+                            <path d="M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811V2.828zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492V2.687zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783z" />
+                        </svg>
+                    </div>
+                    <p class="rb-empty-text">No deleted courses in the recycle bin.</p>
+                </div>
+            }
+        </div>
+
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('.rb-tab-btn').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            // deactivate all tabs and panes
+            document.querySelectorAll('.rb-tab-btn').forEach(function (b) { b.classList.remove('active'); });
+            document.querySelectorAll('.rb-tab-pane').forEach(function (p) { p.classList.remove('active'); });
+            // activate clicked
+            btn.classList.add('active');
+            document.getElementById(btn.getAttribute('data-target')).classList.add('active');
+        });
+    });
+
+        function performAction(entity, action, id) {
+        // URL banayega: /Recycle/RestoreUser/1 ya /Recycle/PermanentDeleteCourse/1
+        var url = '/Recycle/' + action + entity + '/' + id;
+
+        $.post(url, function (response) {
+            if (response.success) {
+                     // Success Message with SweetAlert Toast
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 4000,
+                timerProgressBar: true
+            });
+
+            Toast.fire({
+                icon: 'success',
+                title: response.message,
+                background: action === 'Restore' ? '#d4edda' : '#f8d7da' // Green for Restore, Red for Delete
+            });
+                // Dynamic ID se row ko dhoond kar remove karega
+                $('#' + entity.toLowerCase() + '-row-' + id).fadeOut(500);
+            } else {
+                alert("Kuch ghalat hogaya!");
+            }
+        }).fail(function() {
+            alert("Server error!");
+        });
+    }
+
+</script>

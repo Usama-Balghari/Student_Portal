@@ -73,6 +73,9 @@
                             <li class="nav-item">
                                 <a class="nav-link" asp-controller="Courses" asp-action="Index">Courses</a>
                             </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Logs" asp-action="Index">View Logs</a>
+                            </li>
                         }
                         <li class="nav-item">
                             <a class="nav-link" asp-controller="Home" asp-action="Index">Home</a>
@@ -169,9 +172,9 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
-    @await RenderSectionAsync("Scripts1", required: false)
 
 </body>
 </html>

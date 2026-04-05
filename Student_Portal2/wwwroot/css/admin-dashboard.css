@@ -300,8 +300,8 @@
     }
 
         .db-table-card .table thead th {
-            background: var(--surface-2);
-            color: var(--text-muted);
+            background: var(--indigo-deep);
+            color: var(--surface);
             font-size: 10.5px;
             font-weight: 600;
             letter-spacing: 1.5px;

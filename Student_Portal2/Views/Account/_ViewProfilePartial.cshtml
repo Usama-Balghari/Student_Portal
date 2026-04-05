@@ -2,14 +2,15 @@
 
 
 
-<form asp-action="ViewUserProfile" method="post" enctype="multipart/form-data">
+<form asp-action="ViewUserProfile" method="post" id="viewProfileForm" enctype="multipart/form-data">
     <input type="hidden" asp-for="UserId" />
+    <input type="hidden" asp-for="ProfileImage" />
 
     @* {{-- Avatar --}} *@
     <div class="text-center mb-4">
         <div class="vup-avatar-wrap">
             <img id="vup-avatar-img"
-                 src="~/@(Model.ProfileImage ?? "images/default-user.jpg")"
+                 src="~/@(string.IsNullOrEmpty(Model.ProfileImage) ? "images/default-user.jpg" : Model.ProfileImage)"
                  alt="Profile photo" />
 
             <input asp-for="ImageFile" type="file" class="vup-avatar-file"
@@ -43,6 +44,7 @@
             <label class="vup-label">Username</label>
             <input asp-for="UserName" class="vup-input" placeholder="Username" />
             <span asp-validation-for="UserName" class="text-danger small mt-1 d-block"></span>
+    <div asp-validation-summary="ModelOnly" class="text-danger small mb-3 text-center"></div>
         </div>
         <div class="col-md-6">
             <label class="vup-label">Email</label>
@@ -60,7 +62,6 @@
             <span asp-validation-for="LastName" class="text-danger small mt-1 d-block"></span>
         </div>
     </div>
-
     @* {{-- Reset Password --}} *@
     <p class="vup-section-label">Security</p>
 

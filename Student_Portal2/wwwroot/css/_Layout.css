@@ -149,7 +149,7 @@ body {
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    background: linear-gradient(135deg, var(--amber), var(--amber-pale));
+    background: var(--amber);
     color: var(--ink);
     font-family: var(--ff-display);
     font-size: 13px;

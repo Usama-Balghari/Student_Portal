@@ -122,9 +122,9 @@
     $('#tblCourses').on('click', '.delete-course-btn', function () {
 
         let id = $(this).data("id");
-        if (!confirm("Are you sure you want to delete this?")) {
-            return;
-        }
+        //if (!confirm("Are you sure you want to delete this?")) {
+        //    return;
+        //}
         $.ajax({
             url: '/Courses/DeleteCourse',
             type: 'POST',
@@ -137,6 +137,9 @@
                     $("#success").text(response.message);
                     $("#success-alert").fadeIn();
 
+                    // Page ko smoothly top par le jane ke liye
+                    $("html, body").animate({ scrollTop: 0 }, 200);
+
                     setTimeout(function () {
                         $("#success-alert").fadeOut();
                     }, 4000);
@@ -147,6 +150,9 @@
 
                     $("#success").text(response.message);
                     $("#success-alert").fadeIn();
+
+                    // Page ko smoothly top par le jane ke liye
+                    $("html, body").animate({ scrollTop: 0 }, 200);
 
                     setTimeout(function () {
                         $("#success-alert").fadeOut();
@@ -238,9 +244,9 @@
     $('#tblDepartments').on('click', '.delete-dept-btn', function () {
         
         let id = $(this).data("id");
-        if (!confirm("Are you sure you want to delete this?")) {
-            return;
-        }
+        //if (!confirm("Are you sure you want to delete this?")) {
+        //    return;
+        //}
         $.ajax({
             url: '/Departments/DeleteConfirmed',
             type: 'POST',
@@ -253,6 +259,9 @@
                     $("#success").text(response.message);
                     $("#success-alert").fadeIn();
 
+                    // Page ko smoothly top par le jane ke liye
+                    $("html, body").animate({ scrollTop: 0 }, 200);
+
                     setTimeout(function () {
                         $("#success-alert").fadeOut();
                     }, 4000);
@@ -263,6 +272,9 @@
 
                     $("#success").text(response.message);
                     $("#success-alert").fadeIn();
+
+                    // Page ko smoothly top par le jane ke liye
+                    $("html, body").animate({ scrollTop: 0 }, 200);
 
                     setTimeout(function () {
                         $("#success-alert").fadeOut();
@@ -280,6 +292,78 @@
     }, 4000);
 
 
+
+
+$(document).on('submit', '#createUserForm', function (e) {
+    e.preventDefault();
+    var form = $(this);
+    var modalBody = form.closest('.modal').find('.sp-modal-body'); 
+
+    $.ajax({
+        url: form.attr('action'),
+        type: 'POST',
+        data: form.serialize(),
+        success: function (response) {
+            if (response.success) {
+                // Success: Redirect to the ManageUsers page
+                window.location.href = response.url;
+            } else {
+                // Failure: Replace modal body with the returned PartialView (contains errors)
+                modalBody.html(response);
+            }
+        },
+        error: function () {
+            alert("An error occurred while processing your request.");
+        }
+    });
 });
+    $('#createModal').on('hidden.bs.modal', function () {
+        // 1. Form ki tamam inputs (text, email, password) ko bilkul khali kar dein
+        $(this).find('input[type="text"], input[type="email"], input[type="password"]').val('');
+
+        // 2. Checkbox (Admin toggle) ko uncheck karein
+        $(this).find('input[type="checkbox"]').prop('checked', false);
+
+        // 3. Validation errors (laal rang ke messages) saaf karein
+        $(this).find('.text-danger').empty();
+
+        // 4. Validation summary (oper wala error box) saaf karein
+        $(this).find('.validation-summary-errors').addClass('validation-summary-valid').removeClass('validation-summary-errors').empty();
+
+        // 5. Red borders (input fields se laal lakeren) hatayein
+        $(this).find('.input-validation-error').removeClass('input-validation-error');
+    });
 
 
+
+    ///  ViewProfilePartial Part //////////////////////
+
+    $(document).on('submit', '#viewProfileForm', function (e) { 
+        e.preventDefault();
+
+        var form = $(this);
+        var formData = new FormData(this); // Is se image file bhi chali jayegi
+        var container = $('#ViewProfileModal').find('.sp-modal-body'); 
+
+        $.ajax({
+            url: form.attr('action'),
+            type: 'POST',
+            data: formData,
+            processData: false, // File upload ke liye zaroori
+            contentType: false, // File upload ke liye zaroori
+            success: function (response) {
+                if (response.success) {
+                    // Success: Server se milne wale URL par redirect karein
+                    window.location.href = response.url;
+                } else {
+                    // Failure: Modal body ko errors wale partial view se replace karein
+                    container.html(response);
+                }
+            },
+            error: function () {
+                alert("An error occurred while updating profile.");
+            }
+        });
+    });
+
+});

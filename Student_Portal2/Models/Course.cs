@@ -7,7 +7,8 @@ namespace Student_Portal2.Models
         public int Id { get; set; }
         [Required]
         public string CourseName { get; set; }
-
+        public bool IsDeleted { get; set; } = false;
+        public DateTime? DeletedAt { get; set; }
         public ICollection<Student> Students { get; set; } = new List<Student>();
     }
 }

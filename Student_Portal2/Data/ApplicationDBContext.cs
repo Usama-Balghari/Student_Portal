@@ -13,6 +13,8 @@ public class ApplicationDBContext : IdentityDbContext<ApplicationUser>
     public DbSet<Student_Portal2.Models.Student> Student { get; set; } = default!;
     public DbSet<Student_Portal2.Models.Department> Departments { get; set; } = default!;
     public DbSet<Student_Portal2.Models.Course> Courses { get; set; } = default!;
+    public DbSet<Student_Portal2.Models.UserLog> UserLogs { get; set; } = default!;
+    public DbSet<Student_Portal2.Models.ArchivedStudent> ArchivedStudents { get; set; } = default!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -37,6 +39,7 @@ public class ApplicationDBContext : IdentityDbContext<ApplicationUser>
         .OnDelete(DeleteBehavior.Cascade);
 
         base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<UserLog>().ToTable("Logs");
     }
 
 }

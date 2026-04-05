@@ -19,7 +19,7 @@
                          alt="Profile photo" />
 
                     @* Hidden file input — same asp-for, same name *@
-                    <input asp-for="ImageFile" type="file" class="pf-avatar-file"
+                    <input asp-for="ImageFile" type="file" form="profileForm" class="pf-avatar-file"
                            id="pf-avatar-input"
                            onchange="previewAvatar(this)" />
 
@@ -58,8 +58,9 @@
         @* ── FORM BODY ── *@
         <div class="pf-body">
 
-            <form asp-action="Profile" method="post" enctype="multipart/form-data">
-
+            <form id="profileForm" asp-action="Profile" method="post" enctype="multipart/form-data">
+                <input type="hidden" asp-for="ProfileImage" />
+                <input type="hidden" name="DepartmentName" value="@ViewBag.DepartmentName" />
                 @* Success alert *@
                 @if (TempData["Success"] != null)
                 {

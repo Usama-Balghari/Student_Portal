@@ -10,17 +10,39 @@ using Serilog.Sinks.MSSqlServer;
 using Student_Portal2.Data;
 using Student_Portal2.Models;
 using Student_Portal2.Services;
+using System.Data;
 using System.Security.Claims;
 var builder = WebApplication.CreateBuilder(args);
+var columnOptions = new ColumnOptions();
+
+columnOptions.AdditionalColumns = new List<SqlColumn>
+{
+    new SqlColumn { ColumnName = "UserName", DataType = SqlDbType.NVarChar, DataLength = 100 },
+    new SqlColumn { ColumnName = "Role", DataType = SqlDbType.NVarChar, DataLength = 100 },
+    new SqlColumn { ColumnName = "TargetUser", DataType = SqlDbType.NVarChar, DataLength = 100 },
+    new SqlColumn { ColumnName = "Action", DataType = SqlDbType.NVarChar, DataLength = 100 },
+    new SqlColumn { ColumnName = "PreviousRole", DataType = SqlDbType.NVarChar, DataLength = 50 },
+    new SqlColumn { ColumnName = "CurrentRole", DataType = SqlDbType.NVarChar, DataLength = 50 },
+    new SqlColumn { ColumnName = "PerformedBy", DataType = SqlDbType.NVarChar, DataLength = 100 }
+};
+
+columnOptions.TimeStamp.ColumnName = "TimeStamp";
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+    .Enrich.FromLogContext()
     .WriteTo.Console()
-       .WriteTo.MSSqlServer(
-        connectionString: builder.Configuration.GetConnectionString("Student_Portal2Context"),
-        sinkOptions: new MSSqlServerSinkOptions { TableName = "Logs", AutoCreateSqlTable = true }
-    )
+    .WriteTo.MSSqlServer(
+    connectionString: builder.Configuration.GetConnectionString("Student_Portal2Context"),
+    sinkOptions: new MSSqlServerSinkOptions
+    {
+        TableName = "Logs",
+        AutoCreateSqlTable = true
+    },
+    columnOptions: columnOptions
+)
+
     .CreateLogger();
 builder.Host.UseSerilog();
 
@@ -93,6 +115,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
+
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -147,9 +170,33 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-
 app.UseAuthentication();
+
+
 app.UseAuthorization();
+app.Use(async (context, next) =>
+{
+    var routeData = context.GetRouteData();
+
+
+    var userName = context.User?.Identity?.Name ?? "Anonymous";
+    string role = "Anonymous";
+
+    if (context.User.Identity?.IsAuthenticated == true)
+    {
+        if (context.User.IsInRole("Admin"))
+            role = "Admin";
+        else if (context.User.IsInRole("Student"))
+            role = "Student";
+    }
+    using (Serilog.Context.LogContext.PushProperty("UserName", userName))
+    using (Serilog.Context.LogContext.PushProperty("Role", role))
+    {
+        await next();
+    }
+});
+
+
 
 app.MapControllerRoute(
     name: "default",

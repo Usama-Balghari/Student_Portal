@@ -40,7 +40,7 @@ body {
 
 /* ── Hero header ── */
 .login-hero {
-    background: linear-gradient(145deg, var(--indigo-deep) 0%, var(--indigo) 60%, #3a5298 100%);
+    background: var(--indigo-deep);
     padding: 36px 32px 30px;
     position: relative;
     overflow: hidden;
@@ -64,7 +64,6 @@ body {
         width: 200px;
         height: 200px;
         border-radius: 50%;
-        background: radial-gradient(circle, rgba(245,166,35,0.22) 0%, transparent 65%);
         pointer-events: none;
     }
 
@@ -164,7 +163,7 @@ body {
 
 /* ── Sign In button ── */
 .login-btn-signin {
-    background: linear-gradient(135deg, var(--amber) 0%, var(--amber-pale) 100%) !important;
+    background: var(--amber);
     border: none !important;
     color: var(--ink) !important;
     font-family: var(--ff-body) !important;
@@ -172,14 +171,12 @@ body {
     font-weight: 600 !important;
     border-radius: 999px !important;
     padding: 12px 24px !important;
-    box-shadow: 0 6px 20px rgba(245,166,35,0.38) !important;
     transition: all 0.22s ease !important;
     letter-spacing: 0.2px;
 }
 
     .login-btn-signin:hover {
         transform: translateY(-2px);
-        box-shadow: 0 10px 28px rgba(245,166,35,0.50) !important;
         filter: brightness(1.05);
         color: var(--ink) !important;
     }
@@ -273,7 +270,7 @@ body {
 /* ── Alerts ── */
 .login-alerts .alert {
     border-radius: 12px;
-    font-size: 13px;
+    font-size: 16px;
     font-family: var(--ff-body);
     border: none;
     padding: 11px 16px;

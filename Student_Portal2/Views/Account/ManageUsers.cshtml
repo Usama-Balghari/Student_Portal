@@ -13,6 +13,10 @@
 {
     <div class="sp-alert-success" id="msg">@TempData["Success"]</div>
 }
+@if (TempData["Warning"] != null)
+{
+    <div class="alert alert-warning" id="msg">@TempData["Warning"]</div>
+}
 
 @* {{-- Page Header --}} *@
 <div class="users-page-header">
@@ -179,11 +183,10 @@
     </div>
 </div>
 
-@section Scripts {
+@* @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-}
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+} *@
 
 

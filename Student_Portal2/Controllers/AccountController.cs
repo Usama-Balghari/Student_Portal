@@ -38,8 +38,10 @@ namespace Student_Portal2.Controllers
         [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Create(UserEditViewModel model)
         {
-            //ModelState.Remove("LastName");
-            //ModelState.Remove("FirstName");
+            if (!ModelState.IsValid)
+            {
+                return PartialView("_CreatePartial");
+            }
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
@@ -75,12 +77,14 @@ namespace Student_Portal2.Controllers
 
                         await transaction.CommitAsync();
                         TempData["success"] = "Student and User account created!";
-                        return RedirectToAction(nameof(ManageUsers));
+
+                        return Json(new { success = true, url = Url.Action(nameof(ManageUsers)) });
                     }
 
                     foreach (var error in result.Errors)
                         ModelState.AddModelError("", error.Description);
                 }
+
             }
             catch (Exception)
             {
@@ -100,7 +104,6 @@ namespace Student_Portal2.Controllers
             try
             {
                 var currentUserId = _userManager.GetUserId(User);
-
                 if (userId == currentUserId)
                 {
                     return Json(new { success = false, message = "You cannot delete your own account." });
@@ -112,9 +115,30 @@ namespace Student_Portal2.Controllers
                     return Json(new { success = false, message = "User not found." });
                 }
 
-                var student = await _context.Student
-                    .FirstOrDefaultAsync(s => s.UserId == userId);
+                var student = await _context.Student.FirstOrDefaultAsync(s => s.UserId == userId);
 
+                // 🔹 1. ARCHIVE MEIN MOVE KAREIN (Pehle save karein phir delete)
+                var archivedData = new ArchivedStudent
+                {
+                    UserId = user.Id,
+                    UserName = user.UserName,
+                    Email = user.Email,
+                    PasswordHash = user.PasswordHash, // Restore ke liye lazmi hai
+                    SecurityStamp = user.SecurityStamp,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    ProfileImage = user.ProfileImage,
+                    Address = user.Address,
+                    Age = user.Age,
+                    DepartmentId = student?.DepartmentId, // Agar student null nahi hai
+                    StudentId = student?.Id,
+                    ArchivedDate = DateTime.Now
+                };
+
+                _context.ArchivedStudents.Add(archivedData);
+                await _context.SaveChangesAsync();
+
+                // 🔹 2. ORIGINAL TABLES SE DELETE KAREIN
                 if (student != null)
                 {
                     _context.Student.Remove(student);
@@ -125,19 +149,113 @@ namespace Student_Portal2.Controllers
 
                 if (!result.Succeeded)
                 {
+                    await transaction.RollbackAsync(); // Agar Identity delete fail ho jaye
                     return Json(new { success = false, message = "Delete failed." });
                 }
 
-                await transaction.CommitAsync();
+                // 🔹 3. LOG SAVE
+                var log = new UserLog
+                {
+                    TargetUser = user.UserName,
+                    Action = "User Moved to Recycle Bin",
+                    PreviousRole = "",
+                    CurrentRole = "",
+                    PerformedBy = User.Identity.Name,
+                    TimeStamp = DateTime.Now
+                };
 
-                return Json(new { success = true });
+                _context.UserLogs.Add(log);
+                await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+                return Json(new { success = true, message = "User moved to Recycle Bin." });
             }
-            catch
+            catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                return Json(new { success = false, message = "Server error." });
+                return Json(new { success = false, message = "Server error: " + ex.Message });
             }
         }
+        //restore User/Student 
+        [HttpPost]
+        [Authorize(Policy = "AdminOnly")]
+        public async Task<IActionResult> RestoreUser(int archiveId)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                // 1. Archive table se data fetch karein
+                var archive = await _context.ArchivedStudents.FirstOrDefaultAsync(a => a.ArchiveId == archiveId);
+                if (archive == null)
+                {
+                    return Json(new { success = false, message = "Record not found in Recycle Bin." });
+                }
+
+                // 2. AspNetUser (Identity User) wapis create karein
+                var user = new ApplicationUser
+                {
+                    Id = archive.UserId, // Purani ID hi use karein taake links na tootain
+                    UserName = archive.UserName,
+                    Email = archive.Email,
+                    NormalizedUserName = archive.UserName.ToUpper(),
+                    NormalizedEmail = archive.Email.ToUpper(),
+                    PasswordHash = archive.PasswordHash,
+                    SecurityStamp = archive.SecurityStamp,
+                    FirstName = archive.FirstName,
+                    LastName = archive.LastName,
+                    ProfileImage = archive.ProfileImage,
+                    Address = archive.Address,
+                    Age = archive.Age,
+                    EmailConfirmed = true // Aap purani state bhi archive mein save kar sakte thay
+                };
+
+                var result = await _userManager.CreateAsync(user);
+
+                if (result.Succeeded)
+                {
+                    // 3. Student table mein entry wapis dalen (agar wo student tha)
+                    if (archive.DepartmentId.HasValue)
+                    {
+                        var student = new Student
+                        {
+                            UserId = user.Id,
+                            DepartmentId = archive.DepartmentId.Value
+                        };
+                        _context.Student.Add(student);
+                    }
+
+                    // 4. Archive table se record delete kar den
+                    _context.ArchivedStudents.Remove(archive);
+                    await _context.SaveChangesAsync();
+
+                    // 5. LOG SAVE
+                    var log = new UserLog
+                    {
+                        TargetUser = user.UserName,
+                        Action = "User Restored",
+                        PerformedBy = User.Identity.Name,
+                        TimeStamp = DateTime.Now
+                    };
+                    _context.UserLogs.Add(log);
+                    await _context.SaveChangesAsync();
+
+                    await transaction.CommitAsync();
+                    return Json(new { success = true, message = "User restored successfully." });
+                }
+
+                await transaction.RollbackAsync();
+                return Json(new { success = false, message = "Restore failed at Identity level." });
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                return Json(new { success = false, message = "Server error: " + ex.Message });
+            }
+        }
+
+        //yahn Khatum User/Student restore wala
+
         [HttpGet]
         public IActionResult Register()
         {
@@ -242,45 +360,77 @@ namespace Student_Portal2.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login(RegisterViewModel model,string returnUrl = null)
+        public async Task<IActionResult> Login(RegisterViewModel model, string returnUrl = null)
         {
-            ModelState.Remove("ConfirmPassword");
-            ModelState.Remove("NewPassword");
-            ModelState.Remove("UserName");
-            ModelState.Remove("FirstName");
-            ModelState.Remove("LastName");
-            ModelState.Remove("Token");
-            if (!ModelState.IsValid) {
-
-                return View(model);
-            }
-            var user = await _userManager.FindByEmailAsync(model.Email);
-
-            if (user != null)
+            try
             {
-                var result = await _signInManager.PasswordSignInAsync(user.UserName,model.Password, false, false);
-                 if (result.Succeeded)
-                 {
+                ModelState.Remove("ConfirmPassword");
+                ModelState.Remove("NewPassword");
+                ModelState.Remove("UserName");
+                ModelState.Remove("FirstName");
+                ModelState.Remove("LastName");
+                ModelState.Remove("Token");
 
-                    if (!string.IsNullOrEmpty(returnUrl))
-                        return LocalRedirect(returnUrl);
-                    if (await _userManager.IsInRoleAsync(user, "Admin"))
-                        return RedirectToAction("Dashboard", "Courses");
+                if (!ModelState.IsValid)
+                {
+                    _logger.LogWarning("Login failed - invalid model state for Email {Email}", model.Email);
+                    return View(model);
+                }
 
-                    return RedirectToAction("Index", "Courses");
+                var user = await _userManager.FindByEmailAsync(model.Email);
+
+                if (user != null)
+                {
+                    var result = await _signInManager.PasswordSignInAsync(user.UserName, model.Password, false, false);
+
+                    if (result.Succeeded)
+                    {
+                        var role = await _userManager.IsInRoleAsync(user, "Admin") ? "Admin" : "Student";
+
+                        using (Serilog.Context.LogContext.PushProperty("UserName", user.UserName))
+                        using (Serilog.Context.LogContext.PushProperty("Role", role))
+                        {
+                            _logger.LogInformation("User {Email} logged in successfully", model.Email);
+                        }
+
+                        if (!string.IsNullOrEmpty(returnUrl))
+                            return LocalRedirect(returnUrl);
+
+                        if (role == "Admin")
+                            return RedirectToAction("Dashboard", "Courses");
+
+                        return RedirectToAction("Index", "Courses");
                     }
+
+
                     if (!user.EmailConfirmed)
                     {
+                        _logger.LogWarning("Login attempt with unconfirmed email {Email}", model.Email);
+
                         ModelState.AddModelError(string.Empty, "You must have a confirmed email.");
                         return View(model);
                     }
-                    ModelState.AddModelError("", "Invalid Login Attempt"); 
-                return View();
+
+                    _logger.LogWarning("Invalid login attempt for Email {Email}", model.Email);
+
+                    ModelState.AddModelError("", "Invalid Login Attempt");
+                    return View(model);
+                }
+
+                _logger.LogWarning("Login failed - email not found {Email}", model.Email);
+
+                ModelState.AddModelError(string.Empty, "The Email or Password is incorrect.");
+                return View(model);
             }
-            ModelState.AddModelError(string.Empty, "The Email or Password is incorrect.");
-            
-           return View(model);
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Exception occurred during login for Email {Email}", model.Email);
+
+                ModelState.AddModelError("", "An error occurred while processing your request.");
+                return View(model);
+            }
         }
+
 
 
         [Authorize(Policy = "AdminOnly")]
@@ -359,6 +509,10 @@ namespace Student_Portal2.Controllers
                 }
                 user.ProfileImage = "images/" + fileName;
             }
+            else
+            {
+                user.ProfileImage = model.ProfileImage;
+            }
 
             // Handle Password Reset (Admins don't need the old password)
             if (!string.IsNullOrWhiteSpace(model.NewPassword))
@@ -377,7 +531,7 @@ namespace Student_Portal2.Controllers
             if (updateResult.Succeeded)
             {
                 TempData["Success"] = "User profile updated successfully!";
-                return RedirectToAction("ManageUsers"); // Or your user list action
+                return Json(new { success = true, url = Url.Action("ManageUsers") });
             }
 
             return PartialView("_ViewProfilePartial",model);
@@ -391,38 +545,37 @@ namespace Student_Portal2.Controllers
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null) return NotFound();
 
-            var currentUserId = _userManager.GetUserId(User);
+            // 1. Previous role check
+            var isAdmin = await _userManager.IsInRoleAsync(user, "Admin");
+            string previousRole = isAdmin ? "Admin" : "Student";
+            string currentRole;
 
-            // Prevent admin from removing themselves
-            if (userId == currentUserId && !makeAdmin)
-            {
-                TempData["ErrorMessage"] = "You cannot revoke your own admin role.";
-                return RedirectToAction("ManageUsers");
-            }
-
+            // 2. Role change logic
             if (makeAdmin)
             {
-                if (!await _userManager.IsInRoleAsync(user, "Admin"))
-                {
-                    await _userManager.AddToRoleAsync(user, "Admin");
-                }
-
-                _logger.LogInformation("Admin {AdminUser} promoted user {TargetUser} to Admin role.",
-                    User.Identity.Name, user.UserName);
+                await _userManager.AddToRoleAsync(user, "Admin");
+                TempData["Success"] = "A user has been promoted to admin.";
+                currentRole = "Admin";
             }
             else
             {
-                if (await _userManager.IsInRoleAsync(user, "Admin"))
-                {
-                    await _userManager.RemoveFromRoleAsync(user, "Admin");
-                }
+                await _userManager.RemoveFromRoleAsync(user, "Admin");
+                TempData["Warning"] = "A user has been removed from admin.";
+                currentRole = "Student";
+            }
 
-                _logger.LogInformation("Admin {AdminUser} revoked Admin role from user {TargetUser}.",
-                    User.Identity.Name, user.UserName);
+            using (Serilog.Context.LogContext.PushProperty("TargetUser", user.UserName))
+            using (Serilog.Context.LogContext.PushProperty("Action", "Role Updated"))
+            using (Serilog.Context.LogContext.PushProperty("PreviousRole", previousRole))
+            using (Serilog.Context.LogContext.PushProperty("CurrentRole", currentRole))
+            using (Serilog.Context.LogContext.PushProperty("PerformedBy", User.Identity.Name))
+            {
+                _logger.LogInformation("Role updated for {UserName}");
             }
 
             return RedirectToAction("ManageUsers");
         }
+
         [Authorize]
         [HttpGet]
         public async Task<IActionResult> Profile( )
@@ -463,6 +616,7 @@ namespace Student_Portal2.Controllers
             ModelState.Remove("NewPassword");
             if (!ModelState.IsValid)
             {
+                ViewBag.DepartmentName = Request.Form["DepartmentName"];
                 return View(model);
             }
             var user = await _userManager.GetUserAsync(User);
@@ -476,18 +630,6 @@ namespace Student_Portal2.Controllers
             user.UserName = model.UserName;
             user.Email = model.Email;
 
-            //if (model.ImageFile != null)
-            //{
-            //    var fileName = Guid.NewGuid() + Path.GetExtension(model.ImageFile.FileName);
-            //    var path = Path.Combine(Directory.GetCurrentDirectory(),
-            //                            "wwwroot",
-            //                            fileName);
-
-            //    using var stream = new FileStream(path, FileMode.Create);
-            //    await model.ImageFile.CopyToAsync(stream);
-
-            //    user.ProfileImage = fileName;
-            //}
             if (model.ImageFile != null)
             {
                 string fileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(model.ImageFile.FileName);
@@ -497,6 +639,10 @@ namespace Student_Portal2.Controllers
                     await model.ImageFile.CopyToAsync(stream);
                 }
                 user.ProfileImage = "images/" + fileName;
+            }
+            else
+            {
+                user.ProfileImage = model.ProfileImage;
             }
 
             await _userManager.UpdateAsync(user);
@@ -707,7 +853,7 @@ namespace Student_Portal2.Controllers
                         var addLoginResult = await _userManager.AddLoginAsync(user, info);
 
                         await _signInManager.SignInAsync(user, isPersistent: false);
-                        return RedirectToAction("Index", "Students");
+                        return RedirectToAction("Index", "Courses");
                     }
                     if ( source == "Register")
                     {
@@ -753,7 +899,7 @@ namespace Student_Portal2.Controllers
                         //    return RedirectToAction("Login");
                         //}
                         //await _signInManager.SignInAsync(user, isPersistent: false);
-                         return RedirectToAction("Index", "Students");
+                         return RedirectToAction("Index", "Courses");
 
                      }
                      if (source == "Register")
@@ -775,10 +921,23 @@ namespace Student_Portal2.Controllers
         //Goolgle Login Wala Yahan tak
         public async Task<IActionResult> Logout()
         {
-            await _signInManager.SignOutAsync();
-            TempData["Logout"] = "You have been LoggedOut!!!";
-            return RedirectToAction("Login");
+            try
+            {
+                await _signInManager.SignOutAsync();
+                _logger.LogInformation("User logged out successfully.");
+
+                TempData["Logout"] = "You have been LoggedOut!!!";
+                return RedirectToAction("Login");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred during the logout process.");
+                // Optional: Add a specific error message for the user
+                TempData["Error"] = "An error occurred while logging out. Please try again.";
+                return RedirectToAction("Dashboard", "Courses");
+            }
         }
+
 
         public async Task<IActionResult> SendConfirmationAndRedirect(string email)
         {

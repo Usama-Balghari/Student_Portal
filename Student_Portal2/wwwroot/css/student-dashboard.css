@@ -49,7 +49,6 @@
         height: 220px;
         top: -80px;
         right: -60px;
-        background: radial-gradient(circle, rgba(245,166,35,0.18) 0%, transparent 65%);
     }
 
     .ec-card::after {
@@ -140,7 +139,6 @@
     border-radius: var(--r-pill);
     padding: 11px 20px;
     cursor: pointer;
-    box-shadow: 0 4px 18px rgba(245,166,35,0.40);
     transition: all 0.25s cubic-bezier(0.4,0,0.2,1);
 }
 
