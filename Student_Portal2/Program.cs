@@ -8,6 +8,7 @@ using Serilog;
 using Serilog.Events;
 using Serilog.Sinks.MSSqlServer;
 using Student_Portal2.Data;
+using Student_Portal2.Middleware;
 using Student_Portal2.Models;
 using Student_Portal2.Services;
 using System.Data;
@@ -104,17 +105,31 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("StudentOnly", policy =>
         policy.RequireRole("Student"));
 });
-builder.Services.ConfigureApplicationCookie(options =>
+
+
+
+builder.Services.AddDistributedMemoryCache();
+
+builder.Services.AddSession(options =>
 {
-    
-    options.LoginPath = "/Account/Login";
-    options.AccessDeniedPath = "/Account/AccessDenied";
+    options.IdleTimeout = TimeSpan.FromMinutes(1); 
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
 });
 
-// Add services to the container.
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(1);
+    options.SlidingExpiration = true;
+    options.LoginPath = "/Account/Login";
+    options.AccessDeniedPath = "/Account/AccessDenied";
+
+});
+
 builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
+
 
 using (var scope = app.Services.CreateScope())
 {
@@ -196,6 +211,9 @@ app.Use(async (context, next) =>
     }
 });
 
+app.UseSession();
+
+app.UseMiddleware<SessionTimeoutMiddleware>();
 
 
 app.MapControllerRoute(

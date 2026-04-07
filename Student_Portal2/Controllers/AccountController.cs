@@ -117,7 +117,7 @@ namespace Student_Portal2.Controllers
 
                 var student = await _context.Student.FirstOrDefaultAsync(s => s.UserId == userId);
 
-                // 🔹 1. ARCHIVE MEIN MOVE KAREIN (Pehle save karein phir delete)
+                // 🔹 1. ARCHIVE MEIN MOVE  (Pehle save karein phir delete)
                 var archivedData = new ArchivedStudent
                 {
                     UserId = user.Id,
@@ -192,10 +192,10 @@ namespace Student_Portal2.Controllers
                     return Json(new { success = false, message = "Record not found in Recycle Bin." });
                 }
 
-                // 2. AspNetUser (Identity User) wapis create karein
+                // 2. AspNetUser (Identity User) 
                 var user = new ApplicationUser
                 {
-                    Id = archive.UserId, // Purani ID hi use karein taake links na tootain
+                    Id = archive.UserId, 
                     UserName = archive.UserName,
                     Email = archive.Email,
                     NormalizedUserName = archive.UserName.ToUpper(),
@@ -207,14 +207,14 @@ namespace Student_Portal2.Controllers
                     ProfileImage = archive.ProfileImage,
                     Address = archive.Address,
                     Age = archive.Age,
-                    EmailConfirmed = true // Aap purani state bhi archive mein save kar sakte thay
+                    EmailConfirmed = true 
                 };
 
                 var result = await _userManager.CreateAsync(user);
 
                 if (result.Succeeded)
                 {
-                    // 3. Student table mein entry wapis dalen (agar wo student tha)
+                    // 3. Student table mein entry wapis (agar wo student tha)
                     if (archive.DepartmentId.HasValue)
                     {
                         var student = new Student
@@ -241,7 +241,7 @@ namespace Student_Portal2.Controllers
                     await _context.SaveChangesAsync();
 
                     await transaction.CommitAsync();
-                    return Json(new { success = true, message = "User restored successfully." });
+                    return RedirectToAction("Index", "Recycle");
                 }
 
                 await transaction.RollbackAsync();
@@ -396,6 +396,8 @@ namespace Student_Portal2.Controllers
                         if (!string.IsNullOrEmpty(returnUrl))
                             return LocalRedirect(returnUrl);
 
+                        HttpContext.Session.SetString("UserEmail", user.Email);
+
                         if (role == "Admin")
                             return RedirectToAction("Dashboard", "Courses");
 
@@ -452,6 +454,7 @@ namespace Student_Portal2.Controllers
                 {
                     UserId = user.Id,
                     Email = user.Email,
+                    UserName = user.UserName,
                     IsAdmin = await _userManager.IsInRoleAsync(user, "Admin")
                 });
             }
@@ -927,6 +930,7 @@ namespace Student_Portal2.Controllers
                 _logger.LogInformation("User logged out successfully.");
 
                 TempData["Logout"] = "You have been LoggedOut!!!";
+                HttpContext.Session.Clear();
                 return RedirectToAction("Login");
             }
             catch (Exception ex)
