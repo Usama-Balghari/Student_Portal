@@ -255,7 +255,7 @@ namespace Student_Portal2.Controllers
         }
 
         //yahn Khatum User/Student restore wala
-
+        [AllowAnonymous]
         [HttpGet]
         public IActionResult Register()
         {
@@ -337,7 +337,9 @@ namespace Student_Portal2.Controllers
             return RedirectToAction("Register", model);
         }
 
-            [HttpGet]
+
+        [AllowAnonymous]
+        [HttpGet]
         public async Task<IActionResult> ConfirmEmail(string token, string email)
         {
             var user = await _userManager.FindByEmailAsync(email);
@@ -681,7 +683,7 @@ namespace Student_Portal2.Controllers
             return RedirectToAction("Profile");
         }
 
-
+        [AllowAnonymous]
         [HttpGet]
         public async Task<IActionResult> RegisteredEmail()
         { 
@@ -741,8 +743,9 @@ namespace Student_Portal2.Controllers
             TempData["ConfirmToResetPassword"] = "Check Your Email to Reset Passsword";
             return View(model);
         }
-        [HttpGet]
         
+        [AllowAnonymous]
+        [HttpGet]
         public IActionResult ResetPassword(string email, string token)
         {
             if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(token))
@@ -813,7 +816,7 @@ namespace Student_Portal2.Controllers
             if (remoteError != null)
             {
                 ModelState.AddModelError(string.Empty, $"Error from external provider: {remoteError}");
-                return View("Login");
+                return RedirectToAction("Login");
             }
 
             var info = await _signInManager.GetExternalLoginInfoAsync();
@@ -929,8 +932,8 @@ namespace Student_Portal2.Controllers
                 await _signInManager.SignOutAsync();
                 _logger.LogInformation("User logged out successfully.");
 
-                TempData["Logout"] = "You have been LoggedOut!!!";
                 HttpContext.Session.Clear();
+                TempData["Logout"] = "You have been LoggedOut!!!";
                 return RedirectToAction("Login");
             }
             catch (Exception ex)
@@ -942,7 +945,7 @@ namespace Student_Portal2.Controllers
             }
         }
 
-
+        [AllowAnonymous]
         public async Task<IActionResult> SendConfirmationAndRedirect(string email)
         {
             var user = await _userManager.FindByEmailAsync(email);
