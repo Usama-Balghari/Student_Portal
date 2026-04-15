@@ -11,11 +11,8 @@
 
         public async Task InvokeAsync(HttpContext context)
         {
-            
-
-            // 👇 session check
-            var user = context.Session.GetString("UserEmail");
-
+           
+                var userId = context.Session.GetString("UserEmail");
 
             await _next(context);
         }

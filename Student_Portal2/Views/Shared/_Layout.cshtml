@@ -173,27 +173,31 @@
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script>
-        var timeout = 10 * 60 * 1000; // 10 min
+        @if (User.Identity.IsAuthenticated)
+        {
 
-        var timer;
 
-        function resetTimer() {
-            clearTimeout(timer);
-            timer = setTimeout(function () {
+            <script>
+                var timeout = 1 * 60 * 1000; // 10 min
+
+                var timer;
+
+                function resetTimer() {
+                clearTimeout(timer);
+                timer = setTimeout(function () {
                 alert("Session expired. Logging out...");
-                window.location.href = '/Account/Logout';
-            }, timeout);
+                location.reload();
+                }, timeout);
+                }
+
+                // 👇 user activity detect karo
+                window.onload = resetTimer;
+                document.onmousemove = resetTimer;
+                document.onkeypress = resetTimer;
+                document.onclick = resetTimer;
+            </script>
         }
-
-        // 👇 user activity detect karo
-        window.onload = resetTimer;
-        document.onmousemove = resetTimer;
-        document.onkeypress = resetTimer;
-        document.onclick = resetTimer;
-    </script>
-
-    @await RenderSectionAsync("Scripts", required: false)
+        @await RenderSectionAsync("Scripts", required: false)
 
 </body>
 </html>

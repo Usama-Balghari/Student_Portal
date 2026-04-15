@@ -811,136 +811,147 @@ namespace Student_Portal2.Controllers
         }
 
         [AllowAnonymous]
-        public async Task<IActionResult> ExternalLoginCallback(string? returnUrl = null, string? remoteError = null,string source = null)
+        public async Task<IActionResult> ExternalLoginCallback(
+    string? returnUrl = null,
+    string? remoteError = null,
+    string source = null)
         {
             if (remoteError != null)
             {
-                ModelState.AddModelError(string.Empty, $"Error from external provider: {remoteError}");
+                TempData["Error"] = $"External provider error: {remoteError}";
                 return RedirectToAction("Login");
             }
 
             var info = await _signInManager.GetExternalLoginInfoAsync();
             if (info == null)
-                return RedirectToAction(nameof(Login));
-            
-              var  firstName = info.Principal.FindFirstValue(ClaimTypes.GivenName);
-              var  lastName = info.Principal.FindFirstValue(ClaimTypes.Surname);
-            
-            // Sign in user if already linked
-            var result = await _signInManager.ExternalLoginSignInAsync(
+                return RedirectToAction("Login");
+
+            var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+            var firstName = info.Principal.FindFirstValue(ClaimTypes.GivenName);
+            var lastName = info.Principal.FindFirstValue(ClaimTypes.Surname);
+
+            if (email == null)
+            {
+                TempData["Error"] = "Email not received from provider.";
+                return RedirectToAction("Login");
+            }
+
+            // 🔹 1. Try sign-in if already linked
+            var signInResult = await _signInManager.ExternalLoginSignInAsync(
                 info.LoginProvider,
                 info.ProviderKey,
-                isPersistent: false
-                );
-            if (!result.Succeeded)
+                isPersistent: false);
+
+            if (signInResult.Succeeded)
+                return RedirectToAction("Index", "Courses");
+
+            // 🔹 2. Check existing user
+            var user = await _userManager.FindByEmailAsync(email);
+
+            // ================= LOGIN FLOW =================
+            if (source == "Login")
             {
-                // Create user if not exists
-                var email = info.Principal.FindFirstValue(ClaimTypes.Email);
-                if (email != null)
+                if (user == null)
                 {
-                    var user = await _userManager.FindByEmailAsync(email);
-                    if (source == "Login")
+                    TempData["RegisterFirst"] = "Account not found. Please register first.";
+                    return RedirectToAction("Register");
+                }
+
+                var addLoginResult = await _userManager.AddLoginAsync(user, info);
+                if (!addLoginResult.Succeeded)
+                {
+                    TempData["Error"] = "Unable to link external login.";
+                    return RedirectToAction("Login");
+                }
+
+                await _signInManager.SignInAsync(user, isPersistent: false);
+                return RedirectToAction("Index", "Courses");
+            }
+
+            // ================= REGISTER FLOW =================
+            if (source == "Register")
+            {
+                if (user != null)
+                {
+                    TempData["Error"] = "Account already exists. Please login.";
+                    return RedirectToAction("Login");
+                }
+
+                using var transaction = await _context.Database.BeginTransactionAsync();
+                try
+                {
+                    // 🔹 Create user
+                    user = new ApplicationUser
                     {
-                        if (user == null)
-                        {
-                            //user = new ApplicationUser
-                            //{
-                            //    UserName = email,
-                            //    Email = email,
-                            //    EmailConfirmed = true
-                            //};
-                            //var createResult = await _userManager.CreateAsync(user);
-                            //if (!createResult.Succeeded)
-                            //    return RedirectToAction("Login");
-                            TempData["RegisterFirst"] = "Account Not Found Please Register First.";
-                            return RedirectToAction("Register");
-                        }
+                        UserName = email.Split('@')[0],
+                        Email = email,
+                        EmailConfirmed = true,
+                        FirstName = firstName,
+                        LastName = lastName
+                    };
 
-                        var addLoginResult = await _userManager.AddLoginAsync(user, info);
+                    var createResult = await _userManager.CreateAsync(user);
+                    if (!createResult.Succeeded)
+                        throw new Exception("User creation failed");
 
-                        await _signInManager.SignInAsync(user, isPersistent: false);
-                        return RedirectToAction("Index", "Courses");
-                    }
-                    if ( source == "Register")
+                    // 🔹 Link Google login
+                    var addLoginResult = await _userManager.AddLoginAsync(user, info);
+                    if (!addLoginResult.Succeeded)
+                        throw new Exception("External login linking failed");
+
+                    // 🔹 Assign Student role
+                    await _userManager.AddToRoleAsync(user, "Student");
+
+                    // 🔹 Create Student record
+                    var student = new Student
                     {
-                        if (user != null)
-                        {
-                            var addLoginResult = await _userManager.AddLoginAsync(user, info);
-                            if (addLoginResult.Succeeded)
-                            {
-                            TempData["RegisterSuccess"] = "Registration Successful please login";
-                            return RedirectToAction("Login", "Account");
-                            }
-                        }
-                        user = new ApplicationUser
-                        {
-                            
-                            UserName = email.Substring(0,email.IndexOf("@")),
-                            Email = email,
-                            EmailConfirmed = true
-                        };
-                        user.FirstName = firstName;
-                        user.LastName = lastName;
-                        var createResult = await _userManager.CreateAsync(user);
-                        if (!createResult.Succeeded)
-                            return RedirectToAction("Register");
+                        UserId = user.Id
+                    };
 
-                        var addLoginResult1 = await _userManager.AddLoginAsync(user, info);
-                        TempData["RegisterSuccess"] = "Registration Successful please login";
-                        return RedirectToAction("Login", "Account");
-                    }
+                    _context.Student.Add(student);
+                    await _context.SaveChangesAsync();
+
+                    await transaction.CommitAsync();
+
+                    TempData["RegisterSuccess"] = "Registration successful. Please login.";
+                    return RedirectToAction("Login");
+                }
+                catch
+                {
+                    await transaction.RollbackAsync();
+                    TempData["Error"] = "Something went wrong during registration.";
+                    return RedirectToAction("Register");
                 }
             }
-            if (result.Succeeded) { 
-                 var email = info.Principal.FindFirstValue(ClaimTypes.Email);
-                 if (email != null)
-                 {
-                     var user = await _userManager.FindByEmailAsync(email);
-                     if (source == "Login")
-                     {
-                        //var addLoginResult = await _userManager.AddLoginAsync(user, info);
-                        //if (!addLoginResult.Succeeded)
-                        //{
-                        //    TempData["UserNotLinked"] = "Access denied!!!";
-                        //    return RedirectToAction("Login");
-                        //}
-                        //await _signInManager.SignInAsync(user, isPersistent: false);
-                         return RedirectToAction("Index", "Courses");
 
-                     }
-                     if (source == "Register")
-                     {
-                         if (user != null)
-                         {
-                            await _signInManager.SignOutAsync();
-                             TempData["Error"] = "Account already exists.";
-                             return RedirectToAction("Register");
-                         }
-                     }
-                 }
-            }
-                    ModelState.AddModelError("", "Email not found");
-            return View("Login");
+            return RedirectToAction("Login");
         }
 
+       
 
         //Goolgle Login Wala Yahan tak
         public async Task<IActionResult> Logout()
         {
             try
             {
-                await _signInManager.SignOutAsync();
-                _logger.LogInformation("User logged out successfully.");
-
+                // ✅ clear session first
                 HttpContext.Session.Clear();
-                TempData["Logout"] = "You have been LoggedOut!!!";
-                return RedirectToAction("Login");
+
+                // ✅ sign out user (cookie remove)
+                await _signInManager.SignOutAsync();
+
+                _logger.LogInformation("User {User} logged out successfully.", User?.Identity?.Name);
+
+                TempData["Logout"] = "You have been logged out successfully!";
+
+                return RedirectToAction("Login", "Account");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occurred during the logout process.");
-                // Optional: Add a specific error message for the user
-                TempData["Error"] = "An error occurred while logging out. Please try again.";
+                _logger.LogError(ex, "Error during logout.");
+
+                TempData["Error"] = "Logout failed. Please try again.";
+
                 return RedirectToAction("Dashboard", "Courses");
             }
         }
