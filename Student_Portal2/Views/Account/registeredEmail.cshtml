@@ -1,60 +1,253 @@
 ﻿@model Student_Portal2.Models.RegisterViewModel;
 
-@if (TempData["ConfirmToResetPassword"] !=null)
-{
-    <div class="alert alert-success" id="msg">
-        @TempData["ConfirmToResetPassword"]
-    </div>
-}
-@if (TempData["NoData"] != null)
-{
-    <div class="alert alert-success" id="msg">
-        @TempData["NoData"]
-    </div>
-}
-@if (TempData["ResetPassword"] != null)
-{
-    <div class="alert alert-success" id="mssg">
-        @Html.Raw(TempData["ResetPassword"])
-    </div>
-}
-@if (TempData["AResetPassword"] != null)
-{
-    <div class="alert alert-success" id="mssg">
-        @Html.Raw(TempData["AResetPassword"])
-    </div>
-}
-<div class="card bg-secondary shadow border-0 mx-auto" style="max-width: 520px;">
-    <div class="card-header bg-gradient pb-2">
-        <div class="text-center text-white mb-4 login-header h4">
-            <div>
-                Reset Password
-            </div>
-        </div>
-    </div>
-    <div class="card-body px-lg-5 py-lg-2 bg-light">
-        <div class="text-center text-black mb-4">
-            <p>
-                Enter your registered email address and click send
-            </p>
-        </div>
-        <form asp-action="RegisteredEmail" method="post">
-            <div class="form-group mb-3">
-                <div class="align-items-center">
-                    <input asp-for="Email"
-                           class="form-control mx-auto"
-                           placeholder="Email"
-                           style="max-width: 350px;">
-                    <span asp-validation-for="Email" class="text-danger"></span>
+<style>
+    :root {
+        --ink: #0d1321;
+        --indigo-deep: #1b2b5e;
+        --indigo: #2d3f8a;
+        --indigo-soft: #3d52a8;
+        --amber: #f5a623;
+        --surface-2: #f4f6ff;
+        --text-main: #1a1f3c;
+        --text-muted: #7a85aa;
+        --border: #dde2f3;
+        --ff-display: 'Fraunces', Georgia, serif;
+        --ff-body: 'Outfit', sans-serif;
+    }
 
+    body {
+        background: var(--surface-2) !important;
+    }
+
+    .rg-page {
+        min-height: calc(100vh - 120px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 16px;
+        font-family: var(--ff-body);
+    }
+
+    .rg-alert {
+        width: 100%;
+        max-width: 420px;
+        border-radius: 12px;
+        font-family: var(--ff-body);
+        font-size: 13px;
+        border: none;
+        background: #edfaf3;
+        color: #1f6e46;
+        border-left: 4px solid #4caf82;
+        padding: 11px 16px;
+        margin-bottom: 16px;
+    }
+
+    .rg-card {
+        width: 100%;
+        max-width: 420px;
+        border: none !important;
+        border-radius: 22px !important;
+        overflow: hidden;
+        box-shadow: 0 24px 64px rgba(13,19,33,0.15), 0 4px 16px rgba(13,19,33,0.07) !important;
+    }
+
+    .rg-hero {
+        background: var(--indigo-deep);
+        padding: 32px 32px 28px;
+        position: relative;
+        overflow: hidden;
+        text-align: center;
+    }
+
+        .rg-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+            background-size: 28px 28px;
+            pointer-events: none;
+        }
+
+    .rg-hero-icon {
+        width: 58px;
+        height: 58px;
+        border-radius: 16px;
+        background: rgba(245,166,35,0.15);
+        border: 1px solid rgba(245,166,35,0.35);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 14px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .rg-hero-eyebrow {
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 2.5px;
+        text-transform: uppercase;
+        color: var(--amber);
+        margin-bottom: 4px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .rg-hero-title {
+        font-family: var(--ff-display);
+        font-size: 26px;
+        color: #fff;
+        margin-bottom: 5px;
+        line-height: 1.15;
+        position: relative;
+        z-index: 1;
+    }
+
+    .rg-hero-sub {
+        font-size: 13px;
+        color: rgba(255,255,255,0.45);
+        font-weight: 300;
+        margin: 0;
+        position: relative;
+        z-index: 1;
+        line-height: 1.6;
+    }
+
+    .rg-body {
+        padding: 28px 32px 28px;
+        background: #fff;
+    }
+
+    .rg-label {
+        font-size: 10.5px;
+        font-weight: 600;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+        display: block;
+    }
+
+    .rg-input {
+        font-family: var(--ff-body) !important;
+        font-size: 14px !important;
+        background: var(--surface-2) !important;
+        border: 1.5px solid var(--border) !important;
+        border-radius: 11px !important;
+        padding: 11px 14px !important;
+        color: var(--text-main) !important;
+        transition: border-color 0.2s, box-shadow 0.2s !important;
+        width: 100%;
+    }
+
+        .rg-input:focus {
+            border-color: var(--indigo-soft) !important;
+            box-shadow: 0 0 0 4px rgba(61,82,168,0.10) !important;
+            background: #fff !important;
+            outline: none;
+        }
+
+        .rg-input::placeholder {
+            color: #b0bace !important;
+        }
+
+    .btn-rg-submit {
+        background: var(--amber) !important;
+        border: none !important;
+        color: var(--ink) !important;
+        font-family: var(--ff-body) !important;
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        border-radius: 999px !important;
+        padding: 12px 24px !important;
+        transition: background 0.2s !important;
+        cursor: pointer;
+    }
+
+        .btn-rg-submit:hover {
+            background: #e09520 !important;
+            color: var(--ink) !important;
+        }
+
+    .rg-back {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        margin-top: 18px;
+        font-size: 13px;
+        color: var(--text-muted);
+        text-decoration: none;
+        transition: color 0.2s;
+        font-family: var(--ff-body);
+    }
+
+        .rg-back:hover {
+            color: var(--indigo-soft);
+        }
+
+        .rg-back svg {
+            transition: transform 0.2s;
+        }
+
+        .rg-back:hover svg {
+            transform: translateX(-3px);
+        }
+</style>
+
+<div class="rg-page">
+
+    <div style="width:100%;max-width:420px;">
+        @if (TempData["ConfirmToResetPassword"] != null)
+        {
+            <div class="rg-alert">@TempData["ConfirmToResetPassword"]</div>
+        }
+        @if (TempData["NoData"] != null)
+        {
+            <div class="rg-alert">@TempData["NoData"]</div>
+        }
+        @if (TempData["ResetPassword"] != null)
+        {
+            <div class="rg-alert">@Html.Raw(TempData["ResetPassword"])</div>
+        }
+        @if (TempData["AResetPassword"] != null)
+        {
+            <div class="rg-alert">@Html.Raw(TempData["AResetPassword"])</div>
+        }
+    </div>
+
+    <div class="card rg-card">
+        <div class="rg-hero">
+            <div class="rg-hero-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="white" viewBox="0 0 16 16">
+                    <path d="M0 4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V4Zm2-1a1 1 0 0 0-1 1v.217l7 4.2 7-4.2V4a1 1 0 0 0-1-1H2Zm13 2.383-4.708 2.825L15 11.105V5.383Zm-.034 6.876-5.64-3.471L8 9.583l-1.326-.795-5.64 3.47A1 1 0 0 0 2 13h12a1 1 0 0 0 .966-.741ZM1 11.105l4.708-2.897L1 5.383v5.722Z" />
+                </svg>
+            </div>
+            <p class="rg-hero-eyebrow">Student Portal</p>
+            <h1 class="rg-hero-title">Reset Password</h1>
+            <p class="rg-hero-sub">Enter your registered email and we'll send you a reset link</p>
+        </div>
+
+        <div class="rg-body">
+            <form asp-action="RegisteredEmail" method="post">
+                <div class="mb-4">
+                    <label class="rg-label">Email Address</label>
+                    <input asp-for="Email" class="rg-input" placeholder="you@example.com" />
+                    <span asp-validation-for="Email" class="text-danger small mt-1 d-block"></span>
                 </div>
-                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+                <button type="submit" class="btn btn-rg-submit w-100">
+                    Send Reset Link
+                </button>
+            </form>
 
-                <!----><!---->
-            </div>
-            <div class="text-center">
-                <button type="submit" class="btn btn-primary my-4">Send Request</button>
-            </div>
-        </form>
+            <a asp-action="Login" class="rg-back">
+                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="currentColor" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z" />
+                </svg>
+                Back to Sign In
+            </a>
+        </div>
     </div>
 </div>

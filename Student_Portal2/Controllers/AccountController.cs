@@ -929,7 +929,7 @@ namespace Student_Portal2.Controllers
 
        
 
-        //Goolgle Login Wala Yahan tak
+        //External Login Wala Yahan tak
         public async Task<IActionResult> Logout()
         {
             try

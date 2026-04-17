@@ -402,96 +402,11 @@
 
 }
 
-@* @section Scripts {
-
-    <script>
-
-        $(document).ready(function(){
-
-            $(".addStudentBtn").click(function () {
-
-                var courseId = $(this).data("course-id");
-                var courseName = $(this).data("course-name");
-
-                $("#addModalTitle").text("Add Student - " + courseName);
-
-                $("#addStudentList").html("Loading...");
-
-                $("#addStudentList").load("/Courses/GetStudentsForCourse?courseId=" + courseId);
-
-            });
-
-        });
-        //////////////////////////////////////////////////////////////////////////////////////////
-                $(document).on("click", ".removeStudentBtn", function () {
-
-            var button = $(this);
-
-            var courseId = button.data("course-id");
-            var studentId = button.data("student-id");
-
-            if (!confirm("Are you sure you want to remove this student?"))
-                return;
-
-            $.ajax({
-                url: "/Courses/RemoveStudentFromCourse",
-                type: "POST",
-                data: {
-                    courseId: courseId,
-                    studentId: studentId
-                },
-                       success: function (response) {
-
-            if (response.success) {
-
-                // remove student row
-                $("#studentRow-" + courseId + "-" + studentId).remove();
-
-                // modal count
-                var modalCount = parseInt($("#enrollCount-" + courseId).text());
-
-                modalCount--;
-            if (modalCount <= 0) {
-
-                  // modal close
-                  var modal = bootstrap.Modal.getInstance(document.getElementById("studentsModal-" + courseId));
-                  modal.hide();
-
-            } else {
-
-                      $("#enrollCount-" + courseId).text(modalCount + " enrolled students");
-
-                  }
-
-                // table badge count
-                var tableCount = parseInt($("#courseCount-" + courseId).text());
-
-                tableCount--;
-
-                if (tableCount > 0) {
-
-                    $("#courseCount-" + courseId).text(tableCount);
-
-                } else {
-
-                    // hide badge
-                    $("#courseCount-" + courseId).hide();
-
-                    // show "No enrollments"
-                    $("#noEnroll-" + courseId).show();
-
-                }
-                 var totalStudents = parseInt($("#totalEnrolledStudents").text());
-
-                 totalStudents--;
-
-                 $("#totalEnrolledStudents").text(totalStudents);
-            }
-        }
-
-            });
-
-        });
-    </script>
-
-} *@
+<script>
+    fetch('/api/accountapi/manage-users')
+      .then(res => res.json())
+      .then(data => {
+          console.log(data); // 🔥 yahan data ayega
+      })
+      .catch(error => console.error(error));
+</script>

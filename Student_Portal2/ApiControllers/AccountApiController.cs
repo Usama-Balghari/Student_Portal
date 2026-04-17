@@ -5,15 +5,14 @@ using Microsoft.AspNetCore.Mvc;
 using Student_Portal2.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace Student_Portal2.Controllers
+namespace Student_Portal2.ApiControllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ValuesController : ControllerBase
+    public class AccountApiController : ControllerBase
     {
         private readonly UserManager<ApplicationUser> _userManager;
-
-        public ValuesController(UserManager<ApplicationUser> userManager ) { _userManager = userManager; }
+        public AccountApiController(UserManager<ApplicationUser> userManager) { _userManager = userManager; }
 
         [HttpGet("manage-users")]
         [Authorize(Policy = "AdminOnly")]

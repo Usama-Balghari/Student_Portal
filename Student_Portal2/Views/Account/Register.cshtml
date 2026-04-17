@@ -3,151 +3,418 @@
     ViewData["Title"] = "Register";
 }
 
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-success" id="msg">
-        @TempData["Error"]
-    </div>
-}
-@if (TempData["RegisterFirst"] != null)
-{
-    <div class="alert alert-success" id="msg">
-        @TempData["RegisterFirst"]
-    </div>
-}
+<style>
+    :root {
+        --ink: #0d1321;
+        --indigo-deep: #1b2b5e;
+        --indigo: #2d3f8a;
+        --indigo-soft: #3d52a8;
+        --amber: #f5a623;
+        --amber-pale: #fcd97e;
+        --surface-2: #f4f6ff;
+        --text-main: #1a1f3c;
+        --text-muted: #7a85aa;
+        --border: #dde2f3;
+        --ff-display: 'Fraunces', Georgia, serif;
+        --ff-body: 'Outfit', sans-serif;
+    }
 
-<div class="d-flex justify-content-center">
-    <div class="card bg-secondary shadow border-0 mx-auto" style="max-width: 520px;">
+    body {
+        background: var(--surface-2) !important;
+    }
 
-        <!-- Card Header -->
-        <div class="card-header bg-gradient pb-2">
-            <div class="text-center text-white mb-3 login-header h4">
-                Register
+    .rg-page {
+        min-height: calc(100vh - 120px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 40px 16px;
+        font-family: var(--ff-body);
+    }
+
+    /* Alerts */
+    .rg-alert {
+        width: 100%;
+        max-width: 520px;
+        border-radius: 12px;
+        font-family: var(--ff-body);
+        font-size: 13px;
+        border: none;
+        background: #edfaf3;
+        color: #4caf82;
+        border-left: 4px solid #4caf82;
+        padding: 11px 16px;
+        margin-bottom: 16px;
+    }
+
+    /* Card */
+    .rg-card {
+        width: 100%;
+        max-width: 520px;
+        border: none !important;
+        border-radius: 22px !important;
+        overflow: hidden;
+        box-shadow: 0 24px 64px rgba(13,19,33,0.15), 0 4px 16px rgba(13,19,33,0.07) !important;
+    }
+
+    /* Hero header */
+    .rg-hero {
+        background: var(--indigo-deep);
+        padding: 32px 32px 28px;
+        position: relative;
+        overflow: hidden;
+        text-align: center;
+    }
+
+        .rg-hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image: linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+            background-size: 28px 28px;
+            pointer-events: none;
+        }
+
+    .rg-hero-icon {
+        width: 58px;
+        height: 58px;
+        border-radius: 16px;
+        background: rgba(245,166,35,0.15);
+        border: 1px solid rgba(245,166,35,0.35);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 14px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .rg-hero-eyebrow {
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 2.5px;
+        text-transform: uppercase;
+        color: var(--amber);
+        margin-bottom: 4px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .rg-hero-title {
+        font-family: var(--ff-display);
+        font-size: 26px;
+        color: #fff;
+        margin-bottom: 5px;
+        line-height: 1.15;
+        position: relative;
+        z-index: 1;
+    }
+
+    .rg-hero-sub {
+        font-size: 13px;
+        color: rgba(255,255,255,0.45);
+        font-weight: 300;
+        margin: 0;
+        position: relative;
+        z-index: 1;
+    }
+
+    /* Body */
+    .rg-body {
+        padding: 28px 32px 28px;
+        background: #fff;
+    }
+
+    /* Section label */
+    .rg-section-label {
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin: 0 0 14px;
+    }
+
+        .rg-section-label::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+    /* Labels */
+    .rg-label {
+        font-size: 10.5px;
+        font-weight: 600;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 6px;
+        display: block;
+    }
+
+    /* Inputs */
+    .rg-input {
+        font-family: var(--ff-body) !important;
+        font-size: 14px !important;
+        background: var(--surface-2) !important;
+        border: 1.5px solid var(--border) !important;
+        border-radius: 11px !important;
+        padding: 11px 14px !important;
+        color: var(--text-main) !important;
+        transition: border-color 0.2s, box-shadow 0.2s !important;
+        width: 100%;
+    }
+
+        .rg-input:focus {
+            border-color: var(--indigo-soft) !important;
+            box-shadow: 0 0 0 4px rgba(61,82,168,0.10) !important;
+            background: #fff !important;
+            outline: none;
+        }
+
+        .rg-input::placeholder {
+            color: #b0bace !important;
+        }
+
+    /* Submit button — flat amber, no gradient */
+    .btn-rg-submit {
+        background: var(--amber) !important;
+        border: none !important;
+        color: var(--ink) !important;
+        font-family: var(--ff-body) !important;
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        border-radius: 999px !important;
+        padding: 12px 24px !important;
+        transition: background 0.2s, color 0.2s !important;
+        letter-spacing: 0.2px;
+        cursor: pointer;
+    }
+
+        .btn-rg-submit:hover {
+            background: #e09520 !important;
+            color: var(--ink) !important;
+        }
+
+    /* Divider */
+    .rg-divider {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin: 20px 0;
+    }
+
+    .rg-divider-line {
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+    }
+
+    .rg-divider-text {
+        font-size: 10.5px;
+        font-weight: 600;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        white-space: nowrap;
+    }
+
+    /* Social buttons */
+    .btn-rg-google {
+        font-family: var(--ff-body) !important;
+        font-size: 13.5px !important;
+        font-weight: 500 !important;
+        border-radius: 999px !important;
+        padding: 10px 16px !important;
+        border: 1.5px solid var(--border) !important;
+        color: #3b72e8 !important;
+        background: #fff !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: border-color 0.18s, background 0.18s !important;
+        width: 100%;
+    }
+
+        .btn-rg-google:hover {
+            border-color: #3b72e8 !important;
+            background: #f0f4ff !important;
+            color: #3b72e8 !important;
+        }
+
+    .btn-rg-github {
+        font-family: var(--ff-body) !important;
+        font-size: 13.5px !important;
+        font-weight: 500 !important;
+        border-radius: 999px !important;
+        padding: 10px 16px !important;
+        border: 1.5px solid var(--border) !important;
+        color: var(--text-main) !important;
+        background: #fff !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: border-color 0.18s, background 0.18s !important;
+        width: 100%;
+    }
+
+        .btn-rg-github:hover {
+            border-color: #555 !important;
+            background: #f7f8fc !important;
+            color: var(--text-main) !important;
+        }
+
+    /* Login link */
+    .rg-login-row {
+        text-align: center;
+        margin-top: 18px;
+        font-size: 13px;
+        color: var(--text-muted);
+    }
+
+        .rg-login-row a {
+            color: var(--indigo-soft);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+            .rg-login-row a:hover {
+                text-decoration: underline;
+            }
+</style>
+
+<div class="rg-page">
+
+    @* {{-- Alerts --}} *@
+    <div style="width:100%;max-width:520px;">
+        @if (TempData["Error"] != null)
+        {
+            <div class="rg-alert">@TempData["Error"]</div>
+        }
+        @if (TempData["RegisterFirst"] != null)
+        {
+            <div class="rg-alert">@TempData["RegisterFirst"]</div>
+        }
+    </div>
+
+    <div class="card rg-card">
+
+        @* {{-- Hero --}} *@
+        <div class="rg-hero">
+            <div class="rg-hero-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="white" viewBox="0 0 16 16">
+                    <path d="M6 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0zm4 8c0 1-1 1-1 1H1s-1 0-1-1 1-4 6-4 6 3 6 4zm-1-.004c-.001-.246-.154-.986-.832-1.664C9.516 10.68 8.029 10 6 10c-2.029 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10z" />
+                    <path fill-rule="evenodd" d="M13.5 5a.5.5 0 0 1 .5.5V7h1.5a.5.5 0 0 1 0 1H14v1.5a.5.5 0 0 1-1 0V8h-1.5a.5.5 0 0 1 0-1H13V5.5a.5.5 0 0 1 .5-.5z" />
+                </svg>
             </div>
+            <p class="rg-hero-eyebrow">Student Portal</p>
+            <h1 class="rg-hero-title">Create Account</h1>
+            <p class="rg-hero-sub">Fill in your details to get started</p>
         </div>
 
-        <!-- Card Body -->
-        <div class="card-body px-lg-4 py-lg-3 bg-light">
-            <div class="text-center text-black mb-3">
-                <p>Create your account</p>
-            </div>
-
+        @* {{-- Body --}} *@
+        <div class="rg-body">
             <form method="post" class="needs-validation" novalidate>
 
-                <!-- First & Last Name -->
-                <div class="row mb-3">
-                    <div class="col">
-                    <label for="inputFirstName">FirstName</label>
-                        <input type="text"
-                               name="FirstName"
-                               class="form-control"
-                               id="inputFirstName"
-                               placeholder="First Name"
-                               required />
-                        <span asp-validation-for="FirstName" class="text-danger"></span>
+                @* {{-- Personal Info --}} *@
+                <p class="rg-section-label">Personal Information</p>
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <label class="rg-label">First Name</label>
+                        <input type="text" name="FirstName" class="rg-input" placeholder="First name" required />
+                        <span asp-validation-for="FirstName" class="text-danger small mt-1 d-block"></span>
                     </div>
-
-                    <div class="col">
-                    <label for="inputLastName">LastName</label>
-                        <input type="text"
-                               name="LastName"
-                               class="form-control"
-                               id="inputLastName"
-                               placeholder="Last Name"
-                               required />
-                        <span asp-validation-for="LastName" class="text-danger"></span>
+                    <div class="col-6">
+                        <label class="rg-label">Last Name</label>
+                        <input type="text" name="LastName" class="rg-input" placeholder="Last name" required />
+                        <span asp-validation-for="LastName" class="text-danger small mt-1 d-block"></span>
                     </div>
                 </div>
 
-                <!-- Username -->
-                <div class="row mb-3">
-                    <div class="col">
-                    <label for="inputUserName">UserName</label>
-                    <input type="text"
-                           name="UserName"
-                           class="form-control mx-auto"
-                               id="inputUserName"
-                           placeholder="Username"
-                           style="max-width: 380px;"
-                           required />
-                    <span asp-validation-for="UserName" class="text-danger"></span>
+                @* {{-- Account --}} *@
+                <p class="rg-section-label">Account Details</p>
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <label class="rg-label">Username</label>
+                        <input type="text" name="UserName" class="rg-input" placeholder="Username" required />
+                        <span asp-validation-for="UserName" class="text-danger small mt-1 d-block"></span>
+                    </div>
+                    <div class="col-6">
+                        <label class="rg-label">Email</label>
+                        <input type="email" name="Email" class="rg-input" placeholder="you@example.com" required />
+                        <span asp-validation-for="Email" class="text-danger small mt-1 d-block"></span>
+                    </div>
                 </div>
 
-                <!-- Email -->
-                    
-                        <div class="col">
-                    <label for="inputEmail">Email</label>
-                    <input type="email"
-                           name="Email"
-                           class="form-control mx-auto"
-                           id="inputEmail"
-                           placeholder="Email"
-                           style="max-width: 380px;"
-                           required />
-                    <span asp-validation-for="Email" class="text-danger"></span>
-                </div>
-                </div>
-
-                <!-- Password -->
-                <div class="row mb-3">
-                    <div class="col">
-                    <label for="inputPassword">Password</label>
-                    <input type="password"
-                           asp-for="NewPassword"
-                           class="form-control mx-auto"
-                           id="inputPassword"
-                           placeholder="Password"
-                           style="max-width: 380px;"
-                           required />
-                    <span asp-validation-for="NewPassword" class="text-danger"></span>
+                @* {{-- Security --}} *@
+                <p class="rg-section-label">Security</p>
+                <div class="row g-3 mb-4">
+                    <div class="col-6">
+                        <label class="rg-label">Password</label>
+                        <input type="password" asp-for="NewPassword" class="rg-input" placeholder="••••••••" required />
+                        <span asp-validation-for="NewPassword" class="text-danger small mt-1 d-block"></span>
+                    </div>
+                    <div class="col-6">
+                        <label class="rg-label">Confirm Password</label>
+                        <input type="password" name="ConfirmPassword" class="rg-input" placeholder="••••••••" required />
+                        <span asp-validation-for="ConfirmPassword" class="text-danger small mt-1 d-block"></span>
+                    </div>
                 </div>
 
-                <!-- Confirm Password -->
-                    <div class="col">
-                    <label for="inputConfirmPassword">Confirm Password</label>
-                    <input type="password"
-                           id="inputConfirmPassword"
-                           name="ConfirmPassword"
-                           class="form-control mx-auto"
-                           placeholder="Confirm Password"
-                           style="max-width: 380px;"
-                           required />
-                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
-                </div>
-                </div>
+                <div asp-validation-summary="ModelOnly" class="text-danger small text-center mb-3"></div>
 
-                <div asp-validation-summary="ModelOnly" class="text-danger text-center mb-2"></div>
+                <button type="submit" class="btn btn-rg-submit w-100 mb-2">
+                    Create Account
+                </button>
 
-                <!-- Register Button -->
-                <div class="text-center">
-                    <button type="submit"
-                            class="btn btn-primary w-100"
-                            style="max-width: 380px;">
-                        Register
-                    </button>
+                <div class="rg-login-row">
+                    Already have an account? <a asp-action="Login">Sign in</a>
                 </div>
 
             </form>
-            <hr />
-            <p class="text-center">Or Register with:</p>
+
+            @* {{-- Social --}} *@
+            <div class="rg-divider">
+                <span class="rg-divider-line"></span>
+                <span class="rg-divider-text">Or continue with</span>
+                <span class="rg-divider-line"></span>
+            </div>
+
             <form asp-controller="Account" asp-action="ExternalLogin" method="post">
                 <input type="hidden" name="source" value="Register" />
-
-                <button type="submit" name="provider" value="Google" class="btn btn-outline-primary w-100 mb-2">
-                    Google
-                </button>
-                <button type="submit" name="provider" value="GitHub" class="btn btn-outline-secondary w-100 mb-2">
-                    Github
-                </button>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <button type="submit" name="provider" value="Google" class="btn btn-rg-google">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 48 48">
+                                <path fill="#4285F4" d="M44.5 20H24v8.5h11.7C34.1 33.9 29.6 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 5.1 29.6 3 24 3 12.4 3 3 12.4 3 24s9.4 21 21 21c10.5 0 20-7.7 20-21 0-1.3-.2-2.7-.5-4z" />
+                            </svg>
+                            Google
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <button type="submit" name="provider" value="GitHub" class="btn btn-rg-github">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z" />
+                            </svg>
+                            GitHub
+                        </button>
+                    </div>
+                </div>
             </form>
+
         </div>
     </div>
 </div>
 
-
-@* @section Scripts {
-    <!-- **CRITICAL STEP:** Load the validation scripts using the partial view -->
+@section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
-} *@
+}
